@@ -193,3 +193,4 @@ Read and follow all skills in `.claude/skills/`.
 
 Active skills:
 - `.claude/skills/doc-logging.md` — Automatically append to `docs/CHANGELOG_SHOWCASE_SPRINT.md` and `docs/CODEBASE_AUDIT.md` after every code change.
+- `.claude/skills/eval-generation.md` — Automatically generate eval test cases in `eval/test_cases.yaml` whenever a tool or chain is added or modified.
