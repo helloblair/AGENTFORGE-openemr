@@ -186,3 +186,10 @@ Preserve existing authors/copyrights when editing files.
 - `API_README.md` - REST API docs
 - `FHIR_README.md` - FHIR implementation
 - `tests/Tests/README.md` - Testing guide
+
+## Skills
+
+Read and follow all skills in `.claude/skills/`.
+
+Active skills:
+- `.claude/skills/doc-logging.md` — Automatically append to `docs/CHANGELOG_SHOWCASE_SPRINT.md` and `docs/CODEBASE_AUDIT.md` after every code change.
