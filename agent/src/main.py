@@ -3,12 +3,13 @@
 import uuid
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from src.agent.graph import run_agent
 from src.config import OPENEMR_BASE_URL
+from src.observability.tracing import log_feedback
 
 app = FastAPI(title="OpenEMR Agent", version="0.1.0")
 
@@ -33,6 +34,18 @@ class ChatResponse(BaseModel):
     response: str
     thread_id: str
     tools_used: list[str] = []
+    trace_id: str = ""
+
+
+class FeedbackRequest(BaseModel):
+    trace_id: str
+    score: int  # 1 = positive, 0 = negative
+    comment: str | None = None
+
+
+class FeedbackResponse(BaseModel):
+    success: bool
+    trace_id: str
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -46,7 +59,20 @@ async def chat(req: ChatRequest):
         response=result["response"],
         thread_id=thread_id,
         tools_used=result["tools_used"],
+        trace_id=result.get("trace_id", ""),
     )
+
+
+@app.post("/feedback", response_model=FeedbackResponse)
+async def feedback(req: FeedbackRequest):
+    if req.score not in (0, 1):
+        raise HTTPException(status_code=422, detail="score must be 0 or 1")
+    success = log_feedback(
+        trace_id=req.trace_id,
+        score=req.score,
+        comment=req.comment,
+    )
+    return FeedbackResponse(success=success, trace_id=req.trace_id)
 
 
 @app.get("/health")

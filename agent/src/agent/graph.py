@@ -27,6 +27,7 @@ from langgraph.prebuilt import create_react_agent
 # Ensure the agent package is importable when running as a script.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
+from src.observability.tracing import create_langfuse_handler, init_tracing
 from src.tools import allergy_check, drug_interaction_check, patient_lookup
 from src.verification.scope_guard import (
     CLINICAL_DISCLAIMER,
@@ -38,6 +39,9 @@ from src.verification.scope_guard import (
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 logger = logging.getLogger(__name__)
+
+# Initialise Langfuse OTEL tracing (no-op if env vars not set).
+init_tracing()
 
 # ── System prompt ────────────────────────────────────────────────────────────
 
@@ -165,7 +169,10 @@ graph = _builder.compile(checkpointer=_checkpointer)
 # ── Public helper ────────────────────────────────────────────────────────────
 
 async def run_agent(
-    user_input: str, thread_id: str | None = None
+    user_input: str,
+    thread_id: str | None = None,
+    trace_id: str | None = None,
+    user_id: str | None = None,
 ) -> dict[str, str | list[str]]:
     """Send a message to the agent and return the final text response.
 
@@ -174,15 +181,28 @@ async def run_agent(
         thread_id:  Conversation thread identifier.  Pass the same value
                     across calls to maintain conversation history.  A random
                     UUID is generated when *None*.
+        trace_id:   Langfuse trace ID for observability.  Auto-generated
+                    when *None*.
+        user_id:    Optional staff identifier (UUID) attached to the trace.
 
     Returns:
-        A dict with ``response`` (str) and ``tools_used`` (list of tool
-        name strings invoked during this turn).
+        A dict with ``response`` (str), ``tools_used`` (list of tool
+        name strings invoked during this turn), and ``trace_id`` (str).
     """
     if thread_id is None:
         thread_id = uuid.uuid4().hex
 
     config = {"configurable": {"thread_id": thread_id}}
+
+    # Attach Langfuse callback handler for full span capture.
+    langfuse_handler, trace_id = create_langfuse_handler(
+        trace_id=trace_id,
+        user_id=user_id,
+        session_id=thread_id,
+        metadata={"source": "openemr-agent"},
+    )
+    if langfuse_handler is not None:
+        config["callbacks"] = [langfuse_handler]
 
     # Count messages *before* this turn so we can isolate new ones.
     snapshot_before = await graph.aget_state(config)
@@ -204,9 +224,17 @@ async def run_agent(
                 if name and name not in tools_used:
                     tools_used.append(name)
 
+    # Flush Langfuse handler to ensure all spans are sent.
+    if langfuse_handler is not None:
+        langfuse_handler.flush()
+
     # The last message in the list is the assistant's final reply.
     ai_message = all_messages[-1]
-    return {"response": ai_message.content, "tools_used": tools_used}
+    return {
+        "response": ai_message.content,
+        "tools_used": tools_used,
+        "trace_id": trace_id,
+    }
 
 
 # ── Standalone test ──────────────────────────────────────────────────────────

@@ -20,3 +20,8 @@ OPENEMR_SCOPES: str = os.environ.get(
     "OPENEMR_SCOPES",
     "openid api:oemr api:fhir user/patient.read user/AllergyIntolerance.read",
 )
+
+# ── Langfuse observability ──────────────────────────────────────────────────
+LANGFUSE_SECRET_KEY: str = os.environ.get("LANGFUSE_SECRET_KEY", "")
+LANGFUSE_PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+LANGFUSE_HOST: str = os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
