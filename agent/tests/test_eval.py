@@ -130,10 +130,11 @@ async def test_agent_response(case: dict):
 
         result = await run_agent(case["input"])
 
+    response = result["response"]
     for expected in case["expected_output_contains"]:
-        assert expected.lower() in result.lower(), (
+        assert expected.lower() in response.lower(), (
             f"[{case['id']}] Expected {expected!r} in agent response, "
-            f"got: {result!r}"
+            f"got: {response!r}"
         )
 
 
