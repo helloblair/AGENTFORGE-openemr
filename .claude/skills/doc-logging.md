@@ -6,8 +6,12 @@ Automatically maintain living documentation with every code change.
 ## Rules — Apply to EVERY Set of Changes
 
 After completing any task that modifies code, configuration, or project
-structure, you MUST append to both files below before committing.
+structure, you MUST append to both files below.
 These are APPEND-ONLY — never overwrite existing content.
+
+**Important:** These files are LOCAL-ONLY (gitignored). Do NOT `git add`
+them or include them in commits. They exist for the developer's private
+reference only.
 
 ### File 1: docs/CHANGELOG_SHOWCASE_SPRINT.md
 
