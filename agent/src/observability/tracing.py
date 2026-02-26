@@ -126,7 +126,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
     ) -> None:
         self._start_root()
         tracer = self._get_tracer()
-        model = serialized.get("kwargs", {}).get("model", "unknown")
+        model = (serialized or {}).get("kwargs", {}).get("model", "unknown")
         ctx = trace.set_span_in_context(self._root_span)
         span = tracer.start_span(
             name=f"llm:{model}",
@@ -189,7 +189,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
     ) -> None:
         self._start_root()
         tracer = self._get_tracer()
-        tool_name = serialized.get("name", "unknown_tool")
+        tool_name = (serialized or {}).get("name", kwargs.get("name", "unknown_tool"))
         ctx = trace.set_span_in_context(self._root_span)
         span = tracer.start_span(
             name=f"tool:{tool_name}",
@@ -240,7 +240,10 @@ class LangfuseOtelHandler(BaseCallbackHandler):
     ) -> None:
         self._start_root()
         tracer = self._get_tracer()
-        name = serialized.get("name", serialized.get("id", ["chain"])[-1])
+        if serialized:
+            name = serialized.get("name", serialized.get("id", ["chain"])[-1])
+        else:
+            name = kwargs.get("name", "chain")
         ctx = trace.set_span_in_context(self._root_span)
         span = tracer.start_span(
             name=f"chain:{name}",
