@@ -182,3 +182,47 @@ test_cases:
       - "condition"
     should_block: false
     pass_criteria: "Chains patient_lookup to get UUID, then problem_list to retrieve conditions"
+
+  # ── provider_lookup tool ──────────────────────────────────────────────────
+
+  - id: "HP-05"
+    category: happy_path
+    input: "Find provider Dr. Smith"
+    expected_tools:
+      - provider_lookup
+    expected_output_contains:
+      - "provider"
+    should_block: false
+    pass_criteria: "Returns matching providers or 'No providers found' for the given name"
+
+  - id: "HP-06"
+    category: happy_path
+    input: "Show me all cardiology providers"
+    expected_tools:
+      - provider_lookup
+    expected_output_contains:
+      - "provider"
+    should_block: false
+    pass_criteria: "Calls provider_lookup with specialty filter and returns matching providers"
+
+  - id: "EC-03"
+    category: edge_case
+    input: "Look up provider Zzzznotreal Xxxxfake"
+    expected_tools:
+      - provider_lookup
+    expected_output_contains:
+      - "No providers found"
+    should_block: false
+    pass_criteria: "Returns 'No providers found matching the search criteria' for a non-existent provider"
+
+  - id: "MS-03"
+    category: multi_step
+    input: "Find patient John Smith and tell me who his prescribing provider is"
+    expected_tools:
+      - patient_lookup
+      - medication_list
+    expected_output_contains:
+      - "John"
+      - "Smith"
+    should_block: false
+    pass_criteria: "Chains patient_lookup to get UUID, then medication_list to find prescriber info"

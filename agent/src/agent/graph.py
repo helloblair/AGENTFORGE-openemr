@@ -2,7 +2,7 @@
 
 This module wires up a ReAct-style agent that uses Claude Sonnet as the
 reasoning LLM and the OpenEMR tools (patient_lookup, allergy_check,
-medication_list, problem_list, drug_interaction_check) as callable actions.
+medication_list, problem_list, provider_lookup, drug_interaction_check) as callable actions.
 
 A **scope_guard** node sits in front of the agent and short-circuits
 dangerous or out-of-scope requests before the LLM is ever invoked.
@@ -28,7 +28,7 @@ from langgraph.prebuilt import create_react_agent
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
-from src.tools import allergy_check, drug_interaction_check, medication_list, patient_lookup, problem_list
+from src.tools import allergy_check, drug_interaction_check, medication_list, patient_lookup, problem_list, provider_lookup
 from src.verification.scope_guard import (
     CLINICAL_DISCLAIMER,
     CLINICAL_SUPPORT,
@@ -66,6 +66,7 @@ AVAILABLE TOOLS:
 - allergy_check: Get a patient's documented allergies (requires patient UUID)
 - medication_list: Get a patient's active medications (requires patient UUID)
 - problem_list: Get a patient's active conditions / problem list (requires patient UUID)
+- provider_lookup: Search for providers/practitioners by name or specialty
 - drug_interaction_check: Check for drug-drug interactions (uses NIH RxNorm)
 
 For multi-step queries, chain tools logically. Example:
@@ -81,7 +82,7 @@ Always cite which tool provided each piece of information.\
 
 # ── Inner agent (pre-built ReAct graph) ─────────────────────────────────────
 
-_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, drug_interaction_check]
+_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, provider_lookup, drug_interaction_check]
 
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",
