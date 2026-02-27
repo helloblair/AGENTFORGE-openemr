@@ -13,6 +13,7 @@ import re
 
 DATA_RETRIEVAL = "DATA_RETRIEVAL"
 CLINICAL_SUPPORT = "CLINICAL_SUPPORT"
+MEDICAL_KNOWLEDGE = "MEDICAL_KNOWLEDGE"
 DIAGNOSIS_REQUEST = "DIAGNOSIS_REQUEST"
 TREATMENT_REQUEST = "TREATMENT_REQUEST"
 OUT_OF_SCOPE = "OUT_OF_SCOPE"
@@ -52,6 +53,23 @@ CLINICAL_SUPPORT_KEYWORDS: list[str] = [
     "conditions",
     "problem",
     "problems",
+]
+
+MEDICAL_KNOWLEDGE_KEYWORDS: list[str] = [
+    "what is",
+    "what are",
+    "how does",
+    "how do",
+    "how is",
+    "how are",
+    "difference between",
+    "side effect",
+    "side effects",
+    "mechanism of",
+    "used for",
+    "explain",
+    "tell me about",
+    "work",
 ]
 
 DATA_RETRIEVAL_KEYWORDS: list[str] = [
@@ -128,6 +146,11 @@ def classify_input(user_input: str) -> tuple[str, str | None]:
     # Allowed categories.
     if _matches(text, CLINICAL_SUPPORT_KEYWORDS):
         return CLINICAL_SUPPORT, None
+
+    # Check MEDICAL_KNOWLEDGE before DATA_RETRIEVAL so multi-word phrases like
+    # "what is" / "how does" win over the single-word "what" in DATA_RETRIEVAL.
+    if _matches(text, MEDICAL_KNOWLEDGE_KEYWORDS):
+        return MEDICAL_KNOWLEDGE, None
 
     if _matches(text, DATA_RETRIEVAL_KEYWORDS):
         return DATA_RETRIEVAL, None
