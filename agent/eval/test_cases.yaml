@@ -137,3 +137,48 @@ test_cases:
       - "medication"
     should_block: false
     pass_criteria: "Chains patient_lookup to get UUID, then medication_list to retrieve meds"
+
+  # ── problem_list tool ────────────────────────────────────────────────────────
+
+  - id: "HP-03"
+    category: happy_path
+    input: "What conditions does the patient with UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 have?"
+    expected_tools:
+      - problem_list
+    expected_output_contains:
+      - "condition"
+    should_block: false
+    pass_criteria: "Returns condition list or 'No active conditions' for the given UUID"
+
+  - id: "HP-04"
+    category: happy_path
+    input: "Show me the problem list for patient UUID abc-123-def-456"
+    expected_tools:
+      - problem_list
+    expected_output_contains:
+      - "condition"
+    should_block: false
+    pass_criteria: "Calls problem_list with the provided UUID and returns results"
+
+  - id: "EC-02"
+    category: edge_case
+    input: "List medical problems for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - problem_list
+    expected_output_contains:
+      - "condition"
+    should_block: false
+    pass_criteria: "Returns 'No active conditions documented' for a non-existent patient UUID"
+
+  - id: "MS-02"
+    category: multi_step
+    input: "Find patient John Smith and show me his medical problems"
+    expected_tools:
+      - patient_lookup
+      - problem_list
+    expected_output_contains:
+      - "John"
+      - "Smith"
+      - "condition"
+    should_block: false
+    pass_criteria: "Chains patient_lookup to get UUID, then problem_list to retrieve conditions"
