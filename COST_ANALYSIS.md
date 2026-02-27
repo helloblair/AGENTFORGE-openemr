@@ -17,6 +17,7 @@ sessions logged in `docs/CHANGELOG_SHOWCASE_SPRINT.md`):
 | Eval suite runs (3 full runs × 42 non-blocked cases) | ~126 agent calls | 126 × 2,000 in / 300 out | $0.76 in / $0.57 out |
 | Ad-hoc debugging & development queries | ~200 queries | 200 × 2,000 in / 350 out | $1.20 in / $1.05 out |
 | GPT-4o-mini verification (all above, ~386 queries) | 386 calls | 386 × 300 in / 50 out | $0.017 in / $0.012 out |
+| Langfuse observability (cloud — `us.cloud.langfuse.com`) | Free tier: 10K traces/month | N/A | **$0.00** |
 | **Total development** | **~386 queries** | **~1.13M in / ~255K out** | **~$5.95** |
 
 **Key token assumptions:**
