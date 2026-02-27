@@ -116,3 +116,19 @@ The provider_lookup FHIR migration fetches all practitioners and filters client-
 
 **Impact:**
 All 7 tools are confirmed working end-to-end through the agent. The system handles single-tool queries, multi-tool chains, and the scope guard correctly classifies clinical, data retrieval, and blocked (diagnosis/treatment) queries.
+
+---
+
+### Drug Safety Validator — Cross-References Meds vs Allergies
+**Timestamp:** 2026-02-26 22:30 UTC
+**Commit:** `feat(verification): drug safety validator — cross-refs meds vs allergies`
+**Files Changed:** agent/src/verification/drug_safety.py (added), agent/src/verification/__init__.py, agent/src/agent/graph.py, agent/tests/test_drug_safety.py (added), agent/eval/test_cases.yaml
+
+**What Changed:**
+Added a post-processing drug safety validator that runs after every agent response involving medication tools (medication_list, drug_interaction_check). The validator cross-references medication names against patient allergy records using direct substring matching and a curated cross-reactivity map (penicillin→amoxicillin, sulfa→bactrim, NSAID→ibuprofen, codeine→hydrocodone, etc.). If a conflict is detected, a prominent WARNING block is prepended to the response. If allergy data is not already in the conversation context, the validator automatically invokes allergy_check to fetch it. Also added a "This is not medical advice" disclaimer that appends to every response involving clinical data tools (medication_list, drug_interaction_check, allergy_check, problem_list). Replaced the old single-purpose `_append_disclaimer` graph node with a unified `_post_process_node` that handles drug safety + both disclaimers.
+
+**Engineering Rationale:**
+The drug safety check is implemented as a deterministic post-processor (not LLM-based) because allergy-medication conflicts are safety-critical and must fire reliably — LLM-based detection could miss or hallucinate conflicts. The cross-reactivity map is a curated MVP covering the most common drug class cross-reactions (penicillin class, sulfa, cephalosporins, NSAIDs, opioids). A production system would use RxNorm class membership via the RxClass API or NDF-RT relationships. The inline allergy fetch uses concurrent.futures to work around the "already inside an event loop" constraint of LangGraph's synchronous node callbacks. The dual-disclaimer approach (clinical data + clinical support) ensures the "not medical advice" disclaimer appears on all clinical responses regardless of scope guard classification.
+
+**Impact:**
+Adds a safety net for allergy-medication conflicts that fires automatically — clinical staff see warnings before acting on medication data. The penicillin→amoxicillin cross-reactivity scenario is covered by 24 unit tests including the key test case. Three new eval test cases (MS-05, MS-06, EC-05) cover the multi-step chain and edge cases.

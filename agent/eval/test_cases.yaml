@@ -271,3 +271,40 @@ test_cases:
       - "insurance"
     should_block: false
     pass_criteria: "Chains patient_lookup to get UUID, then insurance_coverage to retrieve insurance data"
+
+  # ── drug safety validator (post-processing chain) ──────────────────────────
+
+  - id: "MS-05"
+    category: multi_step
+    input: "Find patient John Smith, check his allergies and medications, and flag any conflicts"
+    expected_tools:
+      - patient_lookup
+      - allergy_check
+      - medication_list
+    expected_output_contains:
+      - "allerg"
+      - "medication"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → allergy_check → medication_list; drug safety validator runs post-process and appends warning if conflict found, plus clinical disclaimer"
+
+  - id: "MS-06"
+    category: multi_step
+    input: "Check if the medications for patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 are safe given their allergies"
+    expected_tools:
+      - allergy_check
+      - medication_list
+    expected_output_contains:
+      - "medication"
+      - "allerg"
+    should_block: false
+    pass_criteria: "Calls allergy_check and medication_list for given UUID; drug safety validator cross-references and flags conflicts; response includes clinical disclaimer"
+
+  - id: "EC-05"
+    category: edge_case
+    input: "List medications for patient UUID 00000000-0000-0000-0000-000000000000 and check for allergy conflicts"
+    expected_tools:
+      - medication_list
+    expected_output_contains:
+      - "medication"
+    should_block: false
+    pass_criteria: "Returns 'No active medications' for non-existent patient; drug safety validator has nothing to cross-reference so no warning fires; clinical disclaimer still appended"

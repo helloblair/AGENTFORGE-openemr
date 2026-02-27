@@ -30,6 +30,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
 from src.tools import allergy_check, drug_interaction_check, insurance_coverage, medication_list, patient_lookup, problem_list, provider_lookup
+from src.verification.drug_safety import (
+    CLINICAL_DATA_DISCLAIMER,
+    MEDICATION_TOOLS,
+    check_drug_safety,
+    extract_allergies_from_messages,
+    find_conflicts,
+    extract_medications_from_messages,
+    format_warning,
+    should_add_clinical_disclaimer,
+)
 from src.verification.scope_guard import (
     CLINICAL_DISCLAIMER,
     CLINICAL_SUPPORT,
@@ -134,40 +144,116 @@ def _route_after_guard(state: MessagesState) -> Literal["agent", "__end__"]:
     return "agent"
 
 
-def _append_disclaimer(state: MessagesState) -> MessagesState:
-    """Append clinical disclaimer to CLINICAL_SUPPORT responses."""
-    user_messages = [
-        m for m in state["messages"]
-        if hasattr(m, "type") and m.type == "human"
-    ]
-    if not user_messages:
+def _post_process_node(state: MessagesState) -> MessagesState:
+    """Post-process agent response: drug safety check + clinical disclaimer.
+
+    1. Detect which tools were called during this turn.
+    2. If medication-related tools were used, cross-reference against
+       allergy data in the conversation.  If allergy data is missing,
+       invoke allergy_check inline (synchronously via asyncio).
+    3. If conflicts found, prepend a WARNING block.
+    4. If any clinical-data tools were used, append the clinical
+       data disclaimer.
+    5. Always append the clinical support disclaimer for CLINICAL_SUPPORT
+       queries (preserves existing behaviour).
+    """
+    messages = state["messages"]
+    last_ai = messages[-1] if messages else None
+    if not isinstance(last_ai, AIMessage):
         return {"messages": []}
 
-    latest_user_text = user_messages[-1].content
-    category, _ = classify_input(latest_user_text)
+    # Identify tools used in this turn by scanning for tool_calls on
+    # AIMessage objects.
+    tools_used: list[str] = []
+    for msg in messages:
+        if hasattr(msg, "tool_calls") and msg.tool_calls:
+            for tc in msg.tool_calls:
+                name = tc.get("name") or tc.get("function", {}).get("name", "")
+                if name and name not in tools_used:
+                    tools_used.append(name)
 
-    if category == CLINICAL_SUPPORT:
-        last_ai = state["messages"][-1]
-        if isinstance(last_ai, AIMessage):
-            return {
-                "messages": [
-                    AIMessage(content=last_ai.content + CLINICAL_DISCLAIMER)
-                ],
-            }
+    response_text = last_ai.content
+
+    # ── Drug safety check ───────────────────────────────────────────────
+    warning_text, needs_allergy_fetch = check_drug_safety(messages, tools_used)
+
+    if needs_allergy_fetch:
+        # Try to find a patient UUID from tool call arguments in the
+        # conversation history so we can call allergy_check.
+        patient_uuid = _extract_patient_uuid(messages)
+        if patient_uuid:
+            try:
+                allergy_result = asyncio.get_event_loop().run_until_complete(
+                    allergy_check.ainvoke({"patient_uuid": patient_uuid})
+                )
+            except RuntimeError:
+                # Already inside an event loop — use a helper.
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    allergy_result = pool.submit(
+                        asyncio.run,
+                        allergy_check.ainvoke({"patient_uuid": patient_uuid}),
+                    ).result(timeout=15)
+
+            if allergy_result and "documented allergy" in allergy_result.lower():
+                # Re-check with the fetched allergy data.
+                from src.verification.drug_safety import (
+                    _parse_allergies_from_text,
+                )
+                allergy_substances = _parse_allergies_from_text(allergy_result)
+                medications = extract_medications_from_messages(messages)
+                conflicts = find_conflicts(allergy_substances, medications)
+                if conflicts:
+                    warning_text = format_warning(conflicts)
+
+    # Prepend warning if conflicts detected.
+    if warning_text:
+        response_text = warning_text + response_text
+
+    # ── Clinical data disclaimer ────────────────────────────────────────
+    if should_add_clinical_disclaimer(tools_used):
+        response_text += CLINICAL_DATA_DISCLAIMER
+
+    # ── Original CLINICAL_SUPPORT disclaimer ────────────────────────────
+    user_messages = [
+        m for m in messages
+        if hasattr(m, "type") and m.type == "human"
+    ]
+    if user_messages:
+        latest_user_text = user_messages[-1].content
+        category, _ = classify_input(latest_user_text)
+        if category == CLINICAL_SUPPORT:
+            response_text += CLINICAL_DISCLAIMER
+
+    if response_text != last_ai.content:
+        return {"messages": [AIMessage(content=response_text)]}
 
     return {"messages": []}
+
+
+def _extract_patient_uuid(messages: list) -> str | None:
+    """Scan message history for a patient UUID used in tool calls."""
+    for msg in messages:
+        if not hasattr(msg, "tool_calls"):
+            continue
+        for tc in msg.tool_calls:
+            args = tc.get("args", {})
+            uuid = args.get("patient_uuid")
+            if uuid:
+                return uuid
+    return None
 
 
 # Build the outer graph.
 _builder = StateGraph(MessagesState)
 _builder.add_node("scope_guard", _scope_guard_node)
 _builder.add_node("agent", _react_agent)
-_builder.add_node("disclaimer", _append_disclaimer)
+_builder.add_node("post_process", _post_process_node)
 
 _builder.add_edge(START, "scope_guard")
 _builder.add_conditional_edges("scope_guard", _route_after_guard)
-_builder.add_edge("agent", "disclaimer")
-_builder.add_edge("disclaimer", END)
+_builder.add_edge("agent", "post_process")
+_builder.add_edge("post_process", END)
 
 _checkpointer = MemorySaver()
 graph = _builder.compile(checkpointer=_checkpointer)

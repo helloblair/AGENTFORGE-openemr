@@ -56,6 +56,15 @@
 **Status:** working — integration tested 2026-02-26
 **Notes:** Keyword-based classification (MVP). Added `condition`, `conditions`, `problem`, `problems` to clinical support keywords and `insurance`, `coverage`, `check`, `what` to data retrieval keywords to support problem_list and insurance_coverage tool queries. Order matters: blocked categories (diagnosis, treatment) checked before allowed categories (clinical support, data retrieval).
 
+## Verification / drug_safety (updated 2026-02-26)
+
+**Location:** `agent/src/verification/drug_safety.py`
+**Purpose:** Post-processing step that cross-references medications against patient allergies after agent tool calls. Detects direct matches and cross-reactivity (penicillin→amoxicillin, sulfa→bactrim, NSAID→ibuprofen, codeine→hydrocodone, cephalosporin→cephalexin). Prepends WARNING block if conflict found. Also manages the "not medical advice" clinical data disclaimer for all clinical tool responses.
+**Dependencies:** `re`, `logging` (stdlib only). Called from `graph.py` post_process node; may trigger inline `allergy_check` tool invocation if allergy data is missing from conversation.
+**Exposes:** `check_drug_safety()`, `find_conflicts()`, `format_warning()`, `should_add_clinical_disclaimer()`, `extract_medications_from_messages()`, `extract_allergies_from_messages()`, `CLINICAL_DATA_DISCLAIMER`, `MEDICATION_TOOLS`, `CLINICAL_DATA_TOOLS`, `CROSS_REACTIVITY`
+**Status:** working — 24 unit tests passing
+**Notes:** Cross-reactivity map is a curated MVP (6 drug classes). Production would use RxNorm/RxClass API for class membership. Medication parsing requires "active medication" header to avoid false matches from allergy text. The `_post_process_node` in graph.py replaced the old `_append_disclaimer` node and handles drug safety + both disclaimers in one pass. Inline allergy fetch uses concurrent.futures ThreadPoolExecutor to work inside LangGraph's sync node callbacks.
+
 ## Integration Test Summary (2026-02-26)
 
 All 7 tools verified end-to-end through the agent graph:
