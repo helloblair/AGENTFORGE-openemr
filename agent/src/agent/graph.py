@@ -1,8 +1,8 @@
 """LangGraph agent graph — defines nodes, edges, and tool routing.
 
 This module wires up a ReAct-style agent that uses Claude Sonnet as the
-reasoning LLM and the three OpenEMR tools (patient_lookup, allergy_check,
-drug_interaction_check) as callable actions.
+reasoning LLM and the OpenEMR tools (patient_lookup, allergy_check,
+medication_list, drug_interaction_check) as callable actions.
 
 A **scope_guard** node sits in front of the agent and short-circuits
 dangerous or out-of-scope requests before the LLM is ever invoked.
@@ -28,7 +28,7 @@ from langgraph.prebuilt import create_react_agent
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
-from src.tools import allergy_check, drug_interaction_check, patient_lookup
+from src.tools import allergy_check, drug_interaction_check, medication_list, patient_lookup
 from src.verification.scope_guard import (
     CLINICAL_DISCLAIMER,
     CLINICAL_SUPPORT,
@@ -64,20 +64,22 @@ a healthcare provider
 AVAILABLE TOOLS:
 - patient_lookup: Search for patients by name or DOB
 - allergy_check: Get a patient's documented allergies (requires patient UUID)
+- medication_list: Get a patient's active medications (requires patient UUID)
 - drug_interaction_check: Check for drug-drug interactions (uses NIH RxNorm)
 
 For multi-step queries, chain tools logically. Example:
 "Check if John Smith is allergic to any of his current medications"
 → 1. patient_lookup("John Smith") → get UUID
 → 2. allergy_check(UUID) → get allergies
-→ 3. Report findings
+→ 3. medication_list(UUID) → get current medications
+→ 4. Report findings
 
 Always cite which tool provided each piece of information.\
 """
 
 # ── Inner agent (pre-built ReAct graph) ─────────────────────────────────────
 
-_TOOLS = [patient_lookup, allergy_check, drug_interaction_check]
+_TOOLS = [patient_lookup, allergy_check, medication_list, drug_interaction_check]
 
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",

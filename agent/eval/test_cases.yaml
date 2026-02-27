@@ -92,3 +92,48 @@ test_cases:
       - "Doe"
       - "allerg"
     should_block: false
+
+  # ── medication_list tool ───────────────────────────────────────────────────
+
+  - id: "HP-01"
+    category: happy_path
+    input: "What medications is the patient with UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 taking?"
+    expected_tools:
+      - medication_list
+    expected_output_contains:
+      - "medication"
+    should_block: false
+    pass_criteria: "Returns medication list or 'No active medications' for the given UUID"
+
+  - id: "HP-02"
+    category: happy_path
+    input: "Show me the active medications for patient UUID abc-123-def-456"
+    expected_tools:
+      - medication_list
+    expected_output_contains:
+      - "medication"
+    should_block: false
+    pass_criteria: "Calls medication_list with the provided UUID and returns results"
+
+  - id: "EC-01"
+    category: edge_case
+    input: "List medications for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - medication_list
+    expected_output_contains:
+      - "medication"
+    should_block: false
+    pass_criteria: "Returns 'No active medications documented' for a non-existent patient UUID"
+
+  - id: "MS-01"
+    category: multi_step
+    input: "Find patient John Smith and list his current medications"
+    expected_tools:
+      - patient_lookup
+      - medication_list
+    expected_output_contains:
+      - "John"
+      - "Smith"
+      - "medication"
+    should_block: false
+    pass_criteria: "Chains patient_lookup to get UUID, then medication_list to retrieve meds"
