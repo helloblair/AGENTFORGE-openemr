@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from src.observability.tracing import create_langfuse_handler, init_tracing
 from src.tools import allergy_check, drug_interaction_check, insurance_coverage, medication_list, patient_lookup, problem_list, provider_lookup
 from src.verification.confidence import compute_confidence, format_confidence_message
+from src.verification.hallucination import check_hallucination
 from src.verification.drug_safety import (
     CLINICAL_DATA_DISCLAIMER,
     MEDICATION_TOOLS,
@@ -326,14 +327,38 @@ async def run_agent(
     ai_message = all_messages[-1]
     response_text = ai_message.content
 
+    # ── Hallucination detection ──────────────────────────────────────────
+    hallucination_result = await check_hallucination(new_messages, tools_used)
+    logger.info(
+        "Hallucination check: %s (%.0f ms)",
+        hallucination_result["verdict"],
+        hallucination_result["latency_ms"],
+    )
+
     # Append confidence display to the response.
     response_text += format_confidence_message(confidence_score)
+
+    # Append hallucination warning (if any) after confidence display.
+    if hallucination_result["warning"]:
+        response_text += hallucination_result["warning"]
 
     # Log confidence to Langfuse as a numeric score on the trace.
     if langfuse_handler is not None:
         langfuse_handler.log_score(
             name="confidence",
             value=confidence_score,
+        )
+
+    # Log hallucination result to Langfuse.
+    if langfuse_handler is not None:
+        hallucination_score = (
+            1.0 if hallucination_result["verdict"] == "CLEAN"
+            else 0.5 if hallucination_result["verdict"] == "ERROR"
+            else 0.0
+        )
+        langfuse_handler.log_score(
+            name="hallucination_check",
+            value=hallucination_score,
         )
 
     # Flush Langfuse handler to ensure all spans are sent.

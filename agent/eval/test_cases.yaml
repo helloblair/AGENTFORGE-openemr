@@ -344,3 +344,38 @@ test_cases:
       - "Confidence"
     should_block: false
     pass_criteria: "Returns 'No active medications' for non-existent UUID; confidence score is reduced (< 1.0) due to empty result; confidence value and tier displayed in response"
+
+  # ── hallucination detector (post-response chain) ─────────────────────────
+
+  - id: "MS-09"
+    category: multi_step
+    input: "Find patient John Smith and list his current medications"
+    expected_tools:
+      - patient_lookup
+      - medication_list
+    expected_output_contains:
+      - "Confidence"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → medication_list; hallucination detector runs post-response comparing AI claims against tool outputs; response includes confidence score; if all claims supported, no hallucination warning appended"
+
+  - id: "MS-10"
+    category: multi_step
+    input: "Look up patient John Smith and check his allergies and medications for safety"
+    expected_tools:
+      - patient_lookup
+      - allergy_check
+      - medication_list
+    expected_output_contains:
+      - "Confidence"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → allergy_check → medication_list; drug safety validator runs post-process; hallucination detector runs post-response; both verification layers fire on multi-tool response; confidence score displayed"
+
+  - id: "EC-07"
+    category: edge_case
+    input: "What allergies does the patient with UUID 00000000-0000-0000-0000-000000000000 have?"
+    expected_tools:
+      - allergy_check
+    expected_output_contains:
+      - "allerg"
+    should_block: false
+    pass_criteria: "Returns empty allergy result for non-existent UUID; hallucination detector runs but finds no unsupported claims since response matches tool output; no hallucination warning appended; confidence score reduced due to empty result"
