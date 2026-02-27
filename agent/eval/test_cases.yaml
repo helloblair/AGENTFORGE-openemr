@@ -226,3 +226,48 @@ test_cases:
       - "Smith"
     should_block: false
     pass_criteria: "Chains patient_lookup to get UUID, then medication_list to find prescriber info"
+
+  # ── insurance_coverage tool ─────────────────────────────────────────────────
+
+  - id: "HP-07"
+    category: happy_path
+    input: "What insurance does the patient with UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 have?"
+    expected_tools:
+      - insurance_coverage
+    expected_output_contains:
+      - "insurance"
+    should_block: false
+    pass_criteria: "Returns insurance coverage list or 'No insurance coverage on file' for the given UUID"
+
+  - id: "HP-08"
+    category: happy_path
+    input: "Show me insurance coverage details for patient UUID abc-123-def-456"
+    expected_tools:
+      - insurance_coverage
+    expected_output_contains:
+      - "insurance"
+    should_block: false
+    pass_criteria: "Calls insurance_coverage with the provided UUID and returns results"
+
+  - id: "EC-04"
+    category: edge_case
+    input: "Check insurance for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - insurance_coverage
+    expected_output_contains:
+      - "insurance"
+    should_block: false
+    pass_criteria: "Returns 'No insurance coverage on file' for a non-existent patient UUID"
+
+  - id: "MS-04"
+    category: multi_step
+    input: "Find patient John Smith and check his insurance coverage"
+    expected_tools:
+      - patient_lookup
+      - insurance_coverage
+    expected_output_contains:
+      - "John"
+      - "Smith"
+      - "insurance"
+    should_block: false
+    pass_criteria: "Chains patient_lookup to get UUID, then insurance_coverage to retrieve insurance data"
