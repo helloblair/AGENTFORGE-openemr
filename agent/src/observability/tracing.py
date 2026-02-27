@@ -277,6 +277,36 @@ class LangfuseOtelHandler(BaseCallbackHandler):
             span.record_exception(error)
             span.end()
 
+    # ── Score logging ──────────────────────────────────────────────────
+
+    def log_score(self, name: str, value: float) -> None:
+        """Post a numeric score to Langfuse REST API for this trace.
+
+        Used for confidence scores, quality metrics, etc.
+        """
+        if not _langfuse_enabled:
+            return
+
+        url = f"{LANGFUSE_HOST.rstrip('/')}/api/public/scores"
+        auth = (LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY)
+        payload = {
+            "traceId": self.trace_id,
+            "name": name,
+            "value": value,
+            "dataType": "NUMERIC",
+        }
+        try:
+            resp = httpx.post(url, json=payload, auth=auth, timeout=10.0)
+            resp.raise_for_status()
+            logger.info(
+                "Score '%s' = %.2f logged for trace %s",
+                name, value, self.trace_id,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to log score '%s' for trace %s", name, self.trace_id,
+            )
+
     # ── Cleanup ──────────────────────────────────────────────────────────
 
     def flush(self) -> None:

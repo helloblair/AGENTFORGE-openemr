@@ -48,6 +48,14 @@ for msg in st.session_state.messages:
             with st.expander("🔧 Tools called"):
                 for tool in msg["tools_used"]:
                     st.code(tool)
+        if "confidence_score" in msg:
+            score = msg["confidence_score"]
+            if score < 0.6:
+                st.progress(score, text=f"Confidence: {score:.2f}")
+            elif score < 0.8:
+                st.progress(score, text=f"Confidence: {score:.2f}")
+            else:
+                st.progress(score, text=f"Confidence: {score:.2f}")
 
 # ── Handle user input ───────────────────────────────────────────────────────
 
@@ -73,6 +81,7 @@ if prompt := st.chat_input("Ask the healthcare agent…"):
                 data = resp.json()
                 response = data["response"]
                 tools_used = data.get("tools_used", [])
+                confidence_score = data.get("confidence_score", 1.0)
                 st.session_state.thread_id = data["thread_id"]
             except requests.ConnectionError:
                 response = (
@@ -81,9 +90,11 @@ if prompt := st.chat_input("Ask the healthcare agent…"):
                     f"`{AGENT_API_URL}`."
                 )
                 tools_used = []
+                confidence_score = 0.0
             except requests.RequestException as exc:
                 response = f"**Error communicating with agent service:** {exc}"
                 tools_used = []
+                confidence_score = 0.0
         st.markdown(response)
         if tools_used:
             with st.expander("🔧 Tools called"):
@@ -91,5 +102,10 @@ if prompt := st.chat_input("Ask the healthcare agent…"):
                     st.code(tool)
 
     st.session_state.messages.append(
-        {"role": "assistant", "content": response, "tools_used": tools_used}
+        {
+            "role": "assistant",
+            "content": response,
+            "tools_used": tools_used,
+            "confidence_score": confidence_score,
+        }
     )

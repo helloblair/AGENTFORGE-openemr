@@ -308,3 +308,39 @@ test_cases:
       - "medication"
     should_block: false
     pass_criteria: "Returns 'No active medications' for non-existent patient; drug safety validator has nothing to cross-reference so no warning fires; clinical disclaimer still appended"
+
+  # ── confidence scoring (post-processing chain) ───────────────────────────
+
+  - id: "MS-07"
+    category: multi_step
+    input: "Find patient John Smith and list his medications and allergies"
+    expected_tools:
+      - patient_lookup
+      - medication_list
+      - allergy_check
+    expected_output_contains:
+      - "Confidence"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → medication_list → allergy_check; confidence score appears in response; score should be >= 0.8 when all tools return data"
+
+  - id: "MS-08"
+    category: multi_step
+    input: "Look up patient John Smith and check his insurance and medical problems"
+    expected_tools:
+      - patient_lookup
+      - insurance_coverage
+      - problem_list
+    expected_output_contains:
+      - "Confidence"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → insurance_coverage + problem_list; confidence score displayed in response; multiple tool success yields high confidence"
+
+  - id: "EC-06"
+    category: edge_case
+    input: "List medications for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - medication_list
+    expected_output_contains:
+      - "Confidence"
+    should_block: false
+    pass_criteria: "Returns 'No active medications' for non-existent UUID; confidence score is reduced (< 1.0) due to empty result; confidence value and tier displayed in response"

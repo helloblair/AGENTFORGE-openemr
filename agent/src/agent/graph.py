@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
 from src.tools import allergy_check, drug_interaction_check, insurance_coverage, medication_list, patient_lookup, problem_list, provider_lookup
+from src.verification.confidence import compute_confidence, format_confidence_message
 from src.verification.drug_safety import (
     CLINICAL_DATA_DISCLAIMER,
     MEDICATION_TOOLS,
@@ -317,16 +318,33 @@ async def run_agent(
                 if name and name not in tools_used:
                     tools_used.append(name)
 
+    # ── Confidence scoring ─────────────────────────────────────────────
+    confidence_score = compute_confidence(new_messages, tools_used)
+    logger.info("Confidence score: %.2f (tools: %s)", confidence_score, tools_used)
+
+    # The last message in the list is the assistant's final reply.
+    ai_message = all_messages[-1]
+    response_text = ai_message.content
+
+    # Append confidence display to the response.
+    response_text += format_confidence_message(confidence_score)
+
+    # Log confidence to Langfuse as a numeric score on the trace.
+    if langfuse_handler is not None:
+        langfuse_handler.log_score(
+            name="confidence",
+            value=confidence_score,
+        )
+
     # Flush Langfuse handler to ensure all spans are sent.
     if langfuse_handler is not None:
         langfuse_handler.flush()
 
-    # The last message in the list is the assistant's final reply.
-    ai_message = all_messages[-1]
     return {
-        "response": ai_message.content,
+        "response": response_text,
         "tools_used": tools_used,
         "trace_id": trace_id,
+        "confidence_score": confidence_score,
     }
 
 

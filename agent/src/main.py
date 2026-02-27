@@ -35,6 +35,7 @@ class ChatResponse(BaseModel):
     thread_id: str
     tools_used: list[str] = []
     trace_id: str = ""
+    confidence_score: float = 1.0
 
 
 class FeedbackRequest(BaseModel):
@@ -60,6 +61,7 @@ async def chat(req: ChatRequest):
         thread_id=thread_id,
         tools_used=result["tools_used"],
         trace_id=result.get("trace_id", ""),
+        confidence_score=result.get("confidence_score", 1.0),
     )
 
 
