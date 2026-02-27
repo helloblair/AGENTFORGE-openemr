@@ -48,6 +48,10 @@ CLINICAL_SUPPORT_KEYWORDS: list[str] = [
     "medications",
     "drug",
     "prescription",
+    "condition",
+    "conditions",
+    "problem",
+    "problems",
 ]
 
 DATA_RETRIEVAL_KEYWORDS: list[str] = [
@@ -62,6 +66,10 @@ DATA_RETRIEVAL_KEYWORDS: list[str] = [
     "patient",
     "provider",
     "record",
+    "insurance",
+    "coverage",
+    "check",
+    "what",
 ]
 
 # ── Block messages ───────────────────────────────────────────────────────────

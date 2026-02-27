@@ -1,8 +1,8 @@
 """Provider lookup tool for searching OpenEMR practitioners by name or specialty.
 
 This module provides a LangGraph-compatible tool that queries the OpenEMR
-REST API (Practitioner) and optionally the FHIR PractitionerRole endpoint
-to find providers matching name and/or specialty criteria.
+FHIR Practitioner and PractitionerRole endpoints to find providers matching
+name and/or specialty criteria.
 """
 
 from __future__ import annotations
@@ -23,43 +23,58 @@ from src.auth.oauth2 import OpenEMRAuth
 
 logger = logging.getLogger(__name__)
 
-_API_PREFIX = "/apis/default/api"
 _FHIR_PREFIX = "/apis/default/fhir"
 _MAX_RESULTS = 10
 
 
-def _format_practitioner(practitioner: dict) -> dict:
-    """Extract relevant fields from a raw API practitioner record."""
-    fname = practitioner.get("fname", "")
-    mname = practitioner.get("mname", "")
-    lname = practitioner.get("lname", "")
-    name_parts = [p for p in (fname, mname, lname) if p]
+def _format_fhir_practitioner(resource: dict) -> dict:
+    """Extract relevant fields from a FHIR Practitioner resource."""
+    # Name
+    names = resource.get("name", [])
+    name_obj = names[0] if names else {}
+    given = " ".join(name_obj.get("given", []))
+    family = name_obj.get("family", "")
+    prefix = " ".join(name_obj.get("prefix", []))
+    name_parts = [p for p in (prefix, given, family) if p]
 
-    street = practitioner.get("street", "")
-    city = practitioner.get("city", "")
-    state = practitioner.get("state", "")
-    postal = practitioner.get("zip", "") or practitioner.get("postal_code", "")
-    address_parts = [p for p in (street, city, state, postal) if p]
+    # Address
+    addresses = resource.get("address", [])
+    address = ""
+    if addresses:
+        addr = addresses[0]
+        lines = addr.get("line", [])
+        city = addr.get("city", "")
+        state = addr.get("state", "")
+        postal = addr.get("postalCode", "")
+        parts = lines + [p for p in (city, state, postal) if p]
+        address = ", ".join(parts)
 
-    phone = (
-        practitioner.get("phone", "")
-        or practitioner.get("phonew1", "")
-        or practitioner.get("phonecell", "")
-    )
+    # Telecom (phone, email)
+    phone = ""
+    email = ""
+    for telecom in resource.get("telecom", []):
+        system = telecom.get("system", "")
+        value = telecom.get("value", "")
+        if system == "phone" and not phone:
+            phone = value
+        elif system == "email" and not email:
+            email = value
 
-    email = practitioner.get("email", "")
-    facility = practitioner.get("facility", "")
-    specialty = practitioner.get("specialty", "")
-    npi = practitioner.get("npi", "")
+    # NPI from identifiers
+    npi = ""
+    for ident in resource.get("identifier", []):
+        if "us-npi" in (ident.get("system", "")):
+            npi = ident.get("value", "")
+            break
 
     return {
-        "uuid": practitioner.get("uuid", ""),
+        "uuid": resource.get("id", ""),
         "name": " ".join(name_parts),
-        "specialty": specialty,
-        "facility": facility,
+        "specialty": "",
+        "facility": "",
         "phone": phone,
         "email": email,
-        "address": ", ".join(address_parts),
+        "address": address,
         "npi": npi,
     }
 
@@ -162,16 +177,13 @@ async def provider_lookup(
     """
     auth = OpenEMRAuth()
 
-    # ── Step 1: Query the REST Practitioner endpoint ──────────────────────
-    params: dict[str, str] = {}
-    if name:
-        params["lname"] = name.strip()
-
+    # ── Step 1: Query the FHIR Practitioner endpoint ──────────────────────
+    # Fetch all practitioners (FHIR name search can cause 500 errors on some
+    # OpenEMR versions, so we filter client-side).
     try:
         async with auth.get_client() as client:
             resp = await client.get(
-                f"{_API_PREFIX}/practitioner",
-                params=params,
+                f"{_FHIR_PREFIX}/Practitioner",
                 timeout=10.0,
             )
 
@@ -180,8 +192,7 @@ async def provider_lookup(
                 auth._refresh_token = None
                 async with auth.get_client() as retry_client:
                     resp = await retry_client.get(
-                        f"{_API_PREFIX}/practitioner",
-                        params=params,
+                        f"{_FHIR_PREFIX}/Practitioner",
                         timeout=10.0,
                     )
 
@@ -194,29 +205,25 @@ async def provider_lookup(
         return "Unable to reach medical records system. Please try again."
 
     body = resp.json()
-    practitioners_raw = body if isinstance(body, list) else body.get("data", [])
+    entries = body.get("entry", [])
 
-    if not practitioners_raw:
-        # If we searched by name and got nothing, try first_name match
+    if not entries:
         if name:
-            params_fname: dict[str, str] = {"fname": name.strip()}
-            try:
-                async with auth.get_client() as client:
-                    resp2 = await client.get(
-                        f"{_API_PREFIX}/practitioner",
-                        params=params_fname,
-                        timeout=10.0,
-                    )
-                    resp2.raise_for_status()
-                body2 = resp2.json()
-                practitioners_raw = body2 if isinstance(body2, list) else body2.get("data", [])
-            except (httpx.TimeoutException, httpx.HTTPStatusError):
-                pass  # Fall through to "no results"
-
-        if not practitioners_raw:
             return "No providers found matching the search criteria."
+        return "No providers found in the system."
 
-    practitioners = [_format_practitioner(p) for p in practitioners_raw]
+    practitioners = [
+        _format_fhir_practitioner(e.get("resource", e)) for e in entries
+    ]
+
+    # Filter by name client-side (case-insensitive partial match).
+    if name:
+        query = name.strip().lower()
+        practitioners = [
+            p for p in practitioners if query in p["name"].lower()
+        ]
+        if not practitioners:
+            return "No providers found matching the search criteria."
 
     # ── Step 2: Optionally enrich with FHIR PractitionerRole ─────────────
     # Fetch PractitionerRole when filtering by specialty or when practitioners
