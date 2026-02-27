@@ -7,6 +7,4 @@ RUN pip install --no-cache-dir .
 
 COPY src/ src/
 
-EXPOSE 8400
-
 CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8400}"]

@@ -306,12 +306,11 @@ test_cases:
   - id: "EC-08"
     category: edge_case
     input: "Check drug interactions for a single drug: aspirin"
-    expected_tools:
-      - drug_interaction_check
+    expected_tools: []
     expected_output_contains:
       - "interaction"
     should_block: false
-    pass_criteria: "Agent handles single-drug input — reports need for at least two drugs or attempts gracefully"
+    pass_criteria: "Agent declines to call drug_interaction_check — correctly explains that at least two drugs are needed for interaction checking"
 
   - id: "EC-09"
     category: edge_case
