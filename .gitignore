@@ -8,4 +8,5 @@ node_modules/
 docs/*
 !docs/CHANGELOG_SHOWCASE_SPRINT.md
 !docs/CODEBASE_AUDIT.md
+!docs/PRE_SEARCH_DOCUMENT.md
 .docs/
