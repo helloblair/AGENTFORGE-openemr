@@ -2,14 +2,21 @@
 > Living map of the codebase. Updated with every significant change.
 > Organized by component. Check Status field for current state.
 
+## Deployment / Railway — FastAPI Agent Service (updated 2026-02-27)
+
+**Location:** `agent/Dockerfile`, `agent/railway.toml`, `agent/pyproject.toml`
+**Purpose:** Packages the FastAPI agent as a Docker container deployed on Railway at `impartial-inspiration-production-0aa4.up.railway.app`.
+**Status:** FIXED 2026-02-27 — was returning 502 for all public requests
+**Notes:** Bug: `EXPOSE 8400` in Dockerfile caused Railway's public ingress to route to port 8400, but uvicorn binds to `$PORT` (8080 in Railway). Internal health check from `100.64.0.2` used `$PORT` directly and passed; all public requests failed. Fix: removed `EXPOSE` directive so Railway routes public traffic via `$PORT` consistently. CMD `${PORT:-8400}` unchanged — fallback 8400 only applies locally. Also removed `streamlit` and `langchain-openai` from runtime deps (neither imported by FastAPI backend).
+
 ## Observability / Langfuse Tracing (updated 2026-02-26)
 
 **Location:** `agent/src/observability/tracing.py`, `agent/src/config.py`
 **Purpose:** Sends OpenTelemetry traces to Langfuse for every agent request — LLM calls, tool invocations, chain steps. Provides user feedback scoring via Langfuse REST API.
 **Dependencies:** `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp-proto-http`, `httpx`, `langchain-core` (BaseCallbackHandler)
 **Exposes:** `init_tracing()`, `create_langfuse_handler()`, `log_feedback()`, `LangfuseOtelHandler` class (includes `log_score()` method)
-**Status:** working — integration tested 2026-02-26
-**Notes:** Uses pure OTEL + Langfuse REST API instead of the `langfuse` Python SDK, which is broken on Python 3.14 (pydantic v1 incompatibility). Tracing is a no-op when `LANGFUSE_SECRET_KEY`/`LANGFUSE_PUBLIC_KEY` env vars are empty. Feedback endpoint at `POST /feedback` accepts `{trace_id, score, comment}`. `log_score()` method posts numeric scores (e.g., confidence) to Langfuse REST API per trace — used by confidence scoring in `graph.py`.
+**Status:** working — updated 2026-02-27
+**Notes:** Uses pure OTEL + Langfuse REST API instead of the `langfuse` Python SDK, which is broken on Python 3.14 (pydantic v1 incompatibility). Tracing is a no-op when `LANGFUSE_SECRET_KEY`/`LANGFUSE_PUBLIC_KEY` env vars are empty. Feedback endpoint at `POST /feedback` accepts `{trace_id, score, comment}`. `log_score()` method posts numeric scores (e.g., confidence) to Langfuse REST API per trace — used by confidence scoring in `graph.py`. Fixed 2026-02-27: all span callbacks now set `langfuse.input` and `langfuse.output` attributes so Langfuse renders inputs/outputs in the trace waterfall. LLM spans capture prompts + generated text; tool spans capture input_str + output; chain spans capture full inputs/outputs dicts as JSON.
 
 ## Tools / medication_list (updated 2026-02-26)
 

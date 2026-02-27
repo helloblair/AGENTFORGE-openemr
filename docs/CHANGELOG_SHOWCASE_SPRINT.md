@@ -343,3 +343,41 @@ Conducted file-by-file audit of entire agent/ codebase and all docs. Confirmed: 
 
 **Impact:**
 Full demo video script generated. Complete deliverable checklist produced. Three remaining actions: (1) railway up from agent/ → update README with URL, (2) record Loom, (3) post @GauntletAI.
+
+---
+
+### Fix Langfuse Traces Missing Inputs and Outputs
+**Timestamp:** 2026-02-27 UTC
+**Commit:** `fix(observability): add langfuse.input/output attributes to all span callbacks`
+**Files Changed:** agent/src/observability/tracing.py
+
+**What Changed:**
+Added `langfuse.input` and `langfuse.output` span attributes to every callback in `LangfuseOtelHandler`. LLM spans now record the prompt list as `langfuse.input` and the generated text as `langfuse.output`. Tool spans record `input_str` on start and the raw output string on end. Chain spans record the full inputs/outputs dicts serialized as JSON. Also added `import json` to support the serialization.
+
+**Engineering Rationale:**
+Langfuse's OTEL integration renders inputs and outputs in the trace UI when spans carry `langfuse.input` / `langfuse.output` attributes (as strings). The previous implementation emitted spans with only timing and token count data — the callbacks received the data (prompts, tool inputs, responses) but never set these attributes, so the Langfuse waterfall showed empty spans. LLM output extraction iterates `response.generations` using `hasattr(gen, "text")` for safety; exceptions are swallowed so a malformed response never breaks the trace. Chain inputs/outputs use `json.dumps(..., default=str)` to handle non-serializable LangGraph state objects without crashing.
+
+**Impact:**
+Langfuse traces now show the full request/response waterfall: what was sent to the LLM, what each tool received and returned, and what each chain step processed. Essential for the demo segment where the trace waterfall is shown on screen.
+
+---
+
+### Fix Railway Deployment 502 — Port Mismatch (EXPOSE vs $PORT)
+**Timestamp:** 2026-02-27 UTC
+**Commit:** `fix(deploy): remove EXPOSE directive to fix Railway public routing 502`
+**Files Changed:** agent/Dockerfile, agent/pyproject.toml
+
+**What Changed:**
+1. `agent/Dockerfile` — removed the `EXPOSE 8400` directive.
+2. `agent/pyproject.toml` — removed `streamlit>=1.40` and `langchain-openai>=0.3` from runtime dependencies (neither is imported by the FastAPI backend; both belong only in the frontend container or dev extras).
+
+**Root Cause Diagnosis:**
+The Railway agent service was returning 502 Bad Gateway for all public requests. Logs showed the service starting correctly (uvicorn on port 8080) and Railway's internal health check from `100.64.0.2` returning `200 OK` — but zero log entries for any public request, confirming traffic never reached the service.
+
+The root cause: Railway uses the Dockerfile `EXPOSE` directive to configure its public ingress routing. `EXPOSE 8400` told Railway's proxy to forward external traffic to port 8400. However, the recent commit that removed `startCommand` switched uvicorn to bind on `$PORT` (which Railway sets to 8080, not 8400). This left the internal health check (which uses `$PORT`) working, but all public traffic hitting an un-bound port 8400 → immediate connection refused → 502.
+
+**Engineering Rationale:**
+Removing `EXPOSE` causes Railway to fall back to routing via `$PORT`, which is the same port uvicorn binds to. This makes internal health checks and public ingress consistent. The CMD `${PORT:-8400}` is correct: Railway injects `$PORT=8080` in production; the `:-8400` fallback only fires for local-without-Railway runs.
+
+**Impact:**
+Public `/chat` and `/health` endpoints become accessible. Agent service fully operational for Streamlit frontend and smoke tests.
