@@ -14,6 +14,7 @@ Provides:
 from __future__ import annotations
 
 import base64
+import json
 import logging
 import time
 import uuid
@@ -135,6 +136,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
                 "gen_ai.system": "anthropic",
                 "gen_ai.request.model": model,
                 "langfuse.trace.id": self.trace_id,
+                "langfuse.input": json.dumps(prompts),
             },
         )
         self._spans[str(run_id)] = span
@@ -160,6 +162,17 @@ class LangfuseOtelHandler(BaseCallbackHandler):
                 "gen_ai.usage.output_tokens",
                 usage.get("output_tokens", 0),
             )
+        # Record the LLM output text.
+        try:
+            generations = [
+                gen.text
+                for gens in response.generations
+                for gen in gens
+                if hasattr(gen, "text")
+            ]
+            span.set_attribute("langfuse.output", json.dumps(generations))
+        except Exception:
+            pass
         span.end()
 
     def on_llm_error(
@@ -197,6 +210,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
             attributes={
                 "tool.name": tool_name,
                 "langfuse.trace.id": self.trace_id,
+                "langfuse.input": input_str,
             },
         )
         self._spans[str(run_id)] = span
@@ -211,6 +225,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
         span = self._spans.pop(str(run_id), None)
         if span is None:
             return
+        span.set_attribute("langfuse.output", output)
         span.end()
 
     def on_tool_error(
@@ -248,7 +263,10 @@ class LangfuseOtelHandler(BaseCallbackHandler):
         span = tracer.start_span(
             name=f"chain:{name}",
             context=ctx,
-            attributes={"langfuse.trace.id": self.trace_id},
+            attributes={
+                "langfuse.trace.id": self.trace_id,
+                "langfuse.input": json.dumps(inputs, default=str),
+            },
         )
         self._spans[str(run_id)] = span
 
@@ -261,6 +279,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
     ) -> None:
         span = self._spans.pop(str(run_id), None)
         if span is not None:
+            span.set_attribute("langfuse.output", json.dumps(outputs, default=str))
             span.end()
 
     def on_chain_error(
