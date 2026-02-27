@@ -36,6 +36,7 @@ class ChatResponse(BaseModel):
     tools_used: list[str] = []
     trace_id: str = ""
     confidence_score: float = 1.0
+    requires_escalation: bool = False  # True when confidence < 0.6 — signals human review
 
 
 class FeedbackRequest(BaseModel):
@@ -56,12 +57,14 @@ class FeedbackResponse(BaseModel):
 async def chat(req: ChatRequest):
     thread_id = req.thread_id or uuid.uuid4().hex
     result = await run_agent(req.message, thread_id=thread_id)
+    confidence_score = result.get("confidence_score", 1.0)
     return ChatResponse(
         response=result["response"],
         thread_id=thread_id,
         tools_used=result["tools_used"],
         trace_id=result.get("trace_id", ""),
-        confidence_score=result.get("confidence_score", 1.0),
+        confidence_score=confidence_score,
+        requires_escalation=confidence_score < 0.6,
     )
 
 
