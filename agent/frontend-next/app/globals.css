@@ -68,3 +68,64 @@ body {
 .animate-slide-in-left {
   animation: slide-in-left 0.2s ease-out;
 }
+
+/* Message entry: user messages slide from right */
+@keyframes message-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.animate-message-in-right {
+  animation: message-in-right 0.25s ease-out both;
+}
+
+/* Message entry: assistant messages slide from left */
+@keyframes message-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.animate-message-in-left {
+  animation: message-in-left 0.25s ease-out both;
+}
+
+/* Skeleton pulse shimmer */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Tool calls panel expand/collapse via grid rows */
+.tool-panel-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease-out;
+}
+
+.tool-panel-content[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.tool-panel-content > div {
+  overflow: hidden;
+}

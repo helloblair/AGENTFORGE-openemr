@@ -1,19 +1,27 @@
 "use client";
 
+import { useState } from "react";
+
 interface ToolCallsPanelProps {
   tools: string[];
 }
 
 export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <details className="mt-3 group">
-      <summary className="flex cursor-pointer select-none items-center gap-1.5 text-[12px] font-medium text-text-secondary">
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex cursor-pointer select-none items-center gap-1.5 text-[12px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+      >
         {/* Chevron rotates when open */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
-          className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90"
+          className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
         >
           <path
             fillRule="evenodd"
@@ -22,18 +30,25 @@ export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
           />
         </svg>
         Tools called ({tools.length})
-      </summary>
+      </button>
 
-      <div className="mt-2 flex flex-wrap gap-1.5 pl-5">
-        {tools.map((tool) => (
-          <span
-            key={tool}
-            className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] text-primary"
-          >
-            {tool}
-          </span>
-        ))}
+      <div
+        className="tool-panel-content"
+        data-open={isOpen}
+      >
+        <div>
+          <div className="mt-2 flex flex-wrap gap-1.5 pl-5">
+            {tools.map((tool) => (
+              <span
+                key={tool}
+                className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] text-primary"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-    </details>
+    </div>
   );
 }
