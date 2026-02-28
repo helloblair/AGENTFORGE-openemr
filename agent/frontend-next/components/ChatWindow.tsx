@@ -1,15 +1,27 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { sendMessage, sendFeedback } from "@/lib/api";
 import type { Message } from "@/lib/types";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 
-export default function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [threadId, setThreadId] = useState(() => uuidv4());
+interface ChatWindowProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  threadId: string;
+  setThreadId: (id: string) => void;
+  /** Called once on mount with the submit handler so the parent can trigger sends. */
+  onReady?: (submit: (text: string) => void) => void;
+}
+
+export default function ChatWindow({
+  messages,
+  setMessages,
+  threadId,
+  setThreadId,
+  onReady,
+}: ChatWindowProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,22 +61,27 @@ export default function ChatWindow() {
         setIsLoading(false);
       }
     },
-    [threadId],
+    [threadId, setMessages, setThreadId],
   );
+
+  // Expose submit to parent via stable ref
+  const submitRef = useRef(handleSubmit);
+  submitRef.current = handleSubmit;
+
+  useEffect(() => {
+    onReady?.((text: string) => submitRef.current(text));
+  }, [onReady]);
 
   const handleFeedback = useCallback(
     (traceId: string, vote: "up" | "down") => {
-      // Optimistically update the message feedback state
       setMessages((prev) =>
         prev.map((msg) =>
           msg.trace_id === traceId ? { ...msg, feedback: vote } : msg,
         ),
       );
-
-      // Fire-and-forget feedback to the API
       sendFeedback({ trace_id: traceId, score: vote === "up" ? 1 : 0 });
     },
-    [],
+    [setMessages],
   );
 
   return (
