@@ -8,6 +8,7 @@ import ToolCallsPanel from "./ToolCallsPanel";
 import ConfidenceBar from "./ConfidenceBar";
 import EscalationWarning from "./EscalationWarning";
 import FeedbackButtons from "./FeedbackButtons";
+import CopyButton from "./CopyButton";
 
 // ── Markdown component overrides ─────────────────────────────────────────────
 
@@ -69,12 +70,14 @@ export default function MessageBubble({
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} ${isUser ? "animate-message-in-right" : "animate-message-in-left"}`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+        className={`relative max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
             ? "bg-primary text-white"
-            : "bg-surface-secondary text-text-primary"
+            : "group bg-surface-secondary text-text-primary"
         }`}
       >
+        {/* Copy button — assistant messages only */}
+        {!isUser && <CopyButton text={message.content} />}
         {/* Role indicator */}
         <div
           className={`mb-1 text-[11px] font-medium ${
