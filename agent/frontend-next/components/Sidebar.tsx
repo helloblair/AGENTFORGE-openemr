@@ -15,12 +15,15 @@ interface SidebarProps {
   threadId: string;
   messageCount: number;
   onExampleClick: (query: string) => void;
+  /** Called when an action inside the sidebar should close the mobile drawer. */
+  onClose?: () => void;
 }
 
 export default function Sidebar({
   threadId,
   messageCount,
   onExampleClick,
+  onClose,
 }: SidebarProps) {
   const [apiStatus, setApiStatus] = useState<"connected" | "unreachable">(
     "unreachable",
@@ -33,7 +36,7 @@ export default function Sidebar({
     async function poll() {
       const health = await checkHealth();
       if (!active) return;
-      setApiStatus(health.status === "ok" ? "connected" : "unreachable");
+      setApiStatus(health.status === "unreachable" ? "unreachable" : "connected");
       setOpenemrConnected(health.openemr_connected);
     }
 
@@ -45,13 +48,18 @@ export default function Sidebar({
     };
   }, []);
 
+  function handleExampleClick(query: string) {
+    onExampleClick(query);
+    onClose?.();
+  }
+
   return (
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
-      {/* Header */}
+      {/* Sidebar header */}
       <div className="border-b border-neutral-200 px-5 py-5 dark:border-neutral-800">
-        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           OpenEMR AI Agent
-        </h1>
+        </h2>
         <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           Clinical Intelligence Assistant
         </p>
@@ -67,7 +75,7 @@ export default function Sidebar({
             <button
               key={query}
               type="button"
-              onClick={() => onExampleClick(query)}
+              onClick={() => handleExampleClick(query)}
               className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-700 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-blue-600 dark:hover:bg-blue-950"
             >
               {query}
