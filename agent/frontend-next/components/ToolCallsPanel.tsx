@@ -150,14 +150,14 @@ export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
         data-open={isOpen}
       >
         <div>
-          <div className="mt-2 flex flex-wrap gap-1.5 pl-5">
+          <div className="mt-2 flex flex-wrap gap-1.5 pl-0 sm:pl-5">
             {tools.map((tool) => {
               const meta = getToolMeta(tool);
               const Icon = meta.icon;
               return (
                 <span
                   key={tool}
-                  className={`inline-flex items-center gap-1.5 rounded-md border-l-2 ${meta.borderColor} bg-secondary px-2.5 py-1 font-mono text-[11px] text-primary shadow-sm transition-shadow duration-150 hover:shadow-md`}
+                  className={`inline-flex items-center gap-1 rounded-md border-l-2 sm:gap-1.5 ${meta.borderColor} bg-secondary px-2 py-1 font-mono text-[10px] text-primary shadow-sm transition-shadow duration-150 hover:shadow-md sm:px-2.5 sm:text-[11px]`}
                 >
                   <Icon />
                   {tool}

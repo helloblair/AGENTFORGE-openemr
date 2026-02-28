@@ -19,6 +19,7 @@ export default function Home() {
   }, []);
 
   const submitRef = useRef<((text: string) => void) | undefined>(undefined);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   const handleReady = useCallback((submit: (text: string) => void) => {
     submitRef.current = submit;
@@ -39,6 +40,45 @@ export default function Home() {
     [],
   );
 
+  // Close sidebar on Escape key
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeSidebar();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [sidebarOpen, closeSidebar]);
+
+  // Focus trap: keep Tab cycling inside the drawer when open
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const drawer = drawerRef.current;
+    if (!drawer) return;
+
+    // Focus the drawer itself on open
+    drawer.focus();
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusable = drawer.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [sidebarOpen]);
+
   return (
     <div className="flex h-screen flex-col">
       {/* Header — always visible */}
@@ -55,26 +95,35 @@ export default function Home() {
           />
         </div>
 
-        {/* Mobile sidebar drawer — slide-over with backdrop */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={closeSidebar}
-              aria-hidden="true"
+        {/* Mobile sidebar drawer — CSS-transitioned slide + backdrop */}
+        <div
+          className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
+          aria-hidden={!sidebarOpen}
+        >
+          {/* Backdrop */}
+          <div
+            className="sidebar-backdrop absolute inset-0 bg-black/40"
+            data-open={sidebarOpen}
+            onClick={closeSidebar}
+          />
+          {/* Drawer */}
+          <div
+            ref={drawerRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation sidebar"
+            className="sidebar-drawer relative z-10 h-full w-[280px] shadow-xl outline-none"
+            data-open={sidebarOpen}
+          >
+            <Sidebar
+              threadId={threadId}
+              messageCount={messages.length}
+              onExampleClick={handleExampleClick}
+              onClose={closeSidebar}
             />
-            {/* Drawer */}
-            <div className="relative z-10 h-full w-[280px] animate-slide-in-left shadow-xl">
-              <Sidebar
-                threadId={threadId}
-                messageCount={messages.length}
-                onExampleClick={handleExampleClick}
-                onClose={closeSidebar}
-              />
-            </div>
           </div>
-        )}
+        </div>
 
         {/* Chat area */}
         <div className="flex flex-1 flex-col overflow-hidden">

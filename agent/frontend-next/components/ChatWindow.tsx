@@ -124,7 +124,7 @@ export default function ChatWindow({
   return (
     <div className="flex h-full flex-col">
       {/* Message list */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-2 py-4 sm:px-4 sm:py-6">
         {messages.length === 0 && !isLoading && (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-text-muted">

@@ -56,17 +56,23 @@ body {
 
 /* ── Animations ──────────────────────────────────────────────────────────────── */
 
-@keyframes slide-in-left {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+/* Sidebar drawer — CSS-driven slide + backdrop transitions */
+.sidebar-drawer {
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-slide-in-left {
-  animation: slide-in-left 0.2s ease-out;
+.sidebar-drawer[data-open="true"] {
+  transform: translateX(0);
+}
+
+.sidebar-backdrop {
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-backdrop[data-open="true"] {
+  opacity: 1;
 }
 
 /* Message entry: user messages slide from right */

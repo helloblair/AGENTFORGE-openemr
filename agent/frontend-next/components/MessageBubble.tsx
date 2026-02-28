@@ -70,17 +70,17 @@ export default function MessageBubble({
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} ${isUser ? "animate-message-in-right" : "animate-message-in-left"}`}>
       <div
-        className={`relative max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+        className={`relative rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "bg-primary text-white"
-            : "group bg-surface-secondary text-text-primary"
+            ? "max-w-[85%] bg-primary text-white sm:max-w-[75%] md:max-w-[70%]"
+            : "group max-w-full bg-surface-secondary text-text-primary sm:max-w-[85%] md:max-w-[80%]"
         }`}
       >
         {/* Copy button — assistant messages only */}
         {!isUser && <CopyButton text={message.content} />}
         {/* Role indicator */}
         <div
-          className={`mb-1 text-[11px] font-medium ${
+          className={`mb-1 text-[10px] font-medium sm:text-[11px] ${
             isUser
               ? "text-white/60"
               : "text-text-muted"
