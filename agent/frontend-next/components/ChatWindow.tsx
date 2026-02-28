@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { sendMessage } from "@/lib/api";
+import { sendMessage, sendFeedback } from "@/lib/api";
 import type { Message } from "@/lib/types";
 import ChatInput from "./ChatInput";
+import MessageBubble from "./MessageBubble";
 
 export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,6 +52,21 @@ export default function ChatWindow() {
     [threadId],
   );
 
+  const handleFeedback = useCallback(
+    (traceId: string, vote: "up" | "down") => {
+      // Optimistically update the message feedback state
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.trace_id === traceId ? { ...msg, feedback: vote } : msg,
+        ),
+      );
+
+      // Fire-and-forget feedback to the API
+      sendFeedback({ trace_id: traceId, score: vote === "up" ? 1 : 0 });
+    },
+    [],
+  );
+
   return (
     <div className="flex h-full flex-col">
       {/* Message list */}
@@ -65,20 +81,11 @@ export default function ChatWindow() {
 
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           {messages.map((msg, i) => (
-            <div
+            <MessageBubble
               key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                  msg.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
-                }`}
-              >
-                {msg.content}
-              </div>
-            </div>
+              message={msg}
+              onFeedback={handleFeedback}
+            />
           ))}
 
           {isLoading && (
