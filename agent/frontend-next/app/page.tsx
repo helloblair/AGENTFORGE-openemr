@@ -2,7 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import type { Message } from "@/lib/types";
+import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
 import ChatWindow from "@/components/ChatWindow";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -20,6 +22,7 @@ export default function Home() {
 
   const submitRef = useRef<((text: string) => void) | undefined>(undefined);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleReady = useCallback((submit: (text: string) => void) => {
     submitRef.current = submit;
@@ -32,6 +35,9 @@ export default function Home() {
   const handleNewChat = useCallback(() => {
     setMessages([]);
     setThreadId(uuidv4());
+    toast("New conversation started");
+    // Focus the chat input after React re-renders
+    requestAnimationFrame(() => chatInputRef.current?.focus());
   }, []);
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -40,15 +46,12 @@ export default function Home() {
     [],
   );
 
-  // Close sidebar on Escape key
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeSidebar();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [sidebarOpen, closeSidebar]);
+  // Global keyboard shortcuts (Ctrl/Cmd+K, Escape)
+  useKeyboardShortcuts({
+    onNewChat: handleNewChat,
+    onCloseSidebar: closeSidebar,
+    sidebarOpen,
+  });
 
   // Focus trap: keep Tab cycling inside the drawer when open
   useEffect(() => {
@@ -133,6 +136,7 @@ export default function Home() {
             threadId={threadId}
             setThreadId={setThreadId}
             onReady={handleReady}
+            chatInputRef={chatInputRef}
           />
 
           {/* Clinical disclaimer */}

@@ -5,13 +5,16 @@ import { useRef, useCallback, useEffect, type FormEvent, type KeyboardEvent } fr
 interface ChatInputProps {
   onSubmit: (message: string) => void;
   isLoading: boolean;
+  /** Optional external ref so a parent can focus the textarea. */
+  textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 // Max height ≈ 4 lines of text (~24px line-height × 4 + padding)
 const MAX_HEIGHT = 120;
 
-export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export default function ChatInput({ onSubmit, isLoading, textareaRef: externalRef }: ChatInputProps) {
+  const internalRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = externalRef ?? internalRef;
 
   const resetHeight = useCallback(() => {
     const ta = textareaRef.current;

@@ -119,6 +119,31 @@ export default function Sidebar({
           </div>
         </div>
 
+        {/* Keyboard shortcuts */}
+        <div className="mb-3">
+          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-text-secondary">
+            Shortcuts
+          </p>
+          <div className="space-y-1 text-[11px] text-text-muted">
+            <p>
+              <kbd className="rounded border border-border bg-surface px-1 py-0.5 font-mono text-[10px]">Ctrl</kbd>
+              {" + "}
+              <kbd className="rounded border border-border bg-surface px-1 py-0.5 font-mono text-[10px]">K</kbd>
+              <span className="ml-1.5">&mdash; New chat</span>
+            </p>
+            <p>
+              <kbd className="rounded border border-border bg-surface px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+              <span className="ml-1.5">&mdash; Send message</span>
+            </p>
+            <p>
+              <kbd className="rounded border border-border bg-surface px-1 py-0.5 font-mono text-[10px]">Shift</kbd>
+              {" + "}
+              <kbd className="rounded border border-border bg-surface px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+              <span className="ml-1.5">&mdash; New line</span>
+            </p>
+          </div>
+        </div>
+
         {/* Footer */}
         <p className="text-[10px] text-text-muted">
           Powered by OpenEMR + Claude

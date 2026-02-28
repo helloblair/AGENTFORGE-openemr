@@ -15,6 +15,8 @@ interface ChatWindowProps {
   setThreadId: (id: string) => void;
   /** Called once on mount with the submit handler so the parent can trigger sends. */
   onReady?: (submit: (text: string) => void) => void;
+  /** Forwarded ref so the parent can focus the chat textarea. */
+  chatInputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export default function ChatWindow({
@@ -23,6 +25,7 @@ export default function ChatWindow({
   threadId,
   setThreadId,
   onReady,
+  chatInputRef,
 }: ChatWindowProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,7 +161,7 @@ export default function ChatWindow({
       )}
 
       {/* Input */}
-      <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+      <ChatInput onSubmit={handleSubmit} isLoading={isLoading} textareaRef={chatInputRef} />
     </div>
   );
 }
