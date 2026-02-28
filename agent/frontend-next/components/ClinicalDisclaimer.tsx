@@ -1,7 +1,7 @@
 export default function ClinicalDisclaimer() {
   return (
-    <div className="border-t border-neutral-200 bg-white px-4 py-2 dark:border-neutral-800 dark:bg-neutral-950">
-      <p className="text-center text-xs text-slate-500">
+    <div className="border-t border-border bg-surface px-4 py-2">
+      <p className="text-center text-xs text-text-secondary">
         This tool provides clinical decision support only. Always verify
         information with qualified healthcare professionals before making
         clinical decisions. Not a substitute for professional medical judgment.

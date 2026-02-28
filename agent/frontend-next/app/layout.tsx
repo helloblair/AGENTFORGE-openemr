@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenEMR Agent",
-  description: "AI-powered clinical assistant for OpenEMR",
+  title: "Veris | Clinical Intelligence",
+  description: "AI-powered clinical intelligence assistant",
 };
 
 export default function RootLayout({

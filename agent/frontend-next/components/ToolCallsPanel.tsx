@@ -7,7 +7,7 @@ interface ToolCallsPanelProps {
 export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
   return (
     <details className="mt-3 group">
-      <summary className="flex cursor-pointer select-none items-center gap-1.5 text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
+      <summary className="flex cursor-pointer select-none items-center gap-1.5 text-[12px] font-medium text-text-secondary">
         {/* Chevron rotates when open */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -28,8 +28,7 @@ export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
         {tools.map((tool) => (
           <span
             key={tool}
-            className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-700 dark:bg-slate-700 dark:text-slate-300"
-            style={{ fontFamily: "var(--font-mono)" }}
+            className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] text-primary"
           >
             {tool}
           </span>

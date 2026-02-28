@@ -48,7 +48,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
   return (
     <form
       onSubmit={handleFormSubmit}
-      className="flex items-end gap-2 border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950"
+      className="flex items-end gap-2 border-t border-border bg-surface p-4"
     >
       <textarea
         ref={textareaRef}
@@ -57,13 +57,13 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
         placeholder="Ask about a patient, medication, or clinical question..."
         onInput={resetHeight}
         onKeyDown={handleKeyDown}
-        className="flex-1 resize-none rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm leading-relaxed placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:placeholder:text-neutral-500 dark:focus:border-blue-400"
+        className="flex-1 resize-none rounded-lg border border-border bg-surface-secondary px-4 py-3 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={isLoading}
         aria-label="Send message"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
         {isLoading ? (
           <svg

@@ -17,7 +17,7 @@ const markdownComponents: Components = {
     if (isInline) {
       return (
         <code
-          className="rounded bg-neutral-200 px-1 py-0.5 font-mono text-[13px] dark:bg-neutral-700"
+          className="rounded bg-secondary px-1 py-0.5 font-mono text-[13px]"
           {...rest}
         >
           {children}
@@ -26,7 +26,7 @@ const markdownComponents: Components = {
     }
     return (
       <code
-        className={`block overflow-x-auto rounded-lg bg-neutral-900 p-3 font-mono text-[13px] leading-relaxed text-neutral-100 dark:bg-neutral-950 ${className ?? ""}`}
+        className={`block overflow-x-auto rounded-lg bg-slate-900 p-3 font-mono text-[13px] leading-relaxed text-slate-100 ${className ?? ""}`}
         {...rest}
       >
         {children}
@@ -71,19 +71,19 @@ export default function MessageBubble({
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
+            ? "bg-primary text-white"
+            : "bg-surface-secondary text-text-primary"
         }`}
       >
         {/* Role indicator */}
         <div
           className={`mb-1 text-[11px] font-medium ${
             isUser
-              ? "text-blue-200"
-              : "text-neutral-400 dark:text-neutral-500"
+              ? "text-white/60"
+              : "text-text-muted"
           }`}
         >
-          {isUser ? "You" : "Agent"}
+          {isUser ? "You" : "Veris"}
         </div>
 
         {/* Content */}

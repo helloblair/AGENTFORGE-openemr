@@ -127,8 +127,8 @@ export default function ChatWindow({
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {messages.length === 0 && !isLoading && (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-neutral-400">
-              Start a conversation with the OpenEMR Agent.
+            <p className="text-sm text-text-muted">
+              Start a conversation with Veris.
             </p>
           </div>
         )}

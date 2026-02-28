@@ -25,8 +25,8 @@ export default function FeedbackButtons({
           currentFeedback === "up"
             ? "text-emerald-500 cursor-default"
             : voted
-              ? "text-neutral-300 dark:text-neutral-600 cursor-default"
-              : "text-neutral-400 hover:text-emerald-500 dark:text-neutral-500 dark:hover:text-emerald-400"
+              ? "text-text-muted cursor-default"
+              : "text-text-muted hover:text-emerald-500"
         }`}
       >
         <svg
@@ -55,8 +55,8 @@ export default function FeedbackButtons({
           currentFeedback === "down"
             ? "text-red-500 cursor-default"
             : voted
-              ? "text-neutral-300 dark:text-neutral-600 cursor-default"
-              : "text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400"
+              ? "text-text-muted cursor-default"
+              : "text-text-muted hover:text-red-500"
         }`}
       >
         <svg

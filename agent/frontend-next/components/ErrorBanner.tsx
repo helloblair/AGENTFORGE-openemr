@@ -10,10 +10,10 @@ export default function ErrorBanner({
   onDismiss,
 }: ErrorBannerProps) {
   return (
-    <div className="flex items-center gap-3 border-t border-red-200 bg-red-50 px-4 py-2.5 dark:border-red-900 dark:bg-red-950">
+    <div className="flex items-center gap-3 border-t border-red-200 bg-red-50 px-4 py-2.5">
       {/* Error icon */}
       <svg
-        className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400"
+        className="h-4 w-4 shrink-0 text-red-600"
         viewBox="0 0 20 20"
         fill="currentColor"
       >
@@ -25,7 +25,7 @@ export default function ErrorBanner({
       </svg>
 
       {/* Message */}
-      <span className="flex-1 text-sm text-red-700 dark:text-red-400">
+      <span className="flex-1 text-sm text-red-700">
         {message}
       </span>
 
@@ -34,7 +34,7 @@ export default function ErrorBanner({
         <button
           type="button"
           onClick={onRetry}
-          className="rounded px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900"
+          className="rounded px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
         >
           Retry
         </button>
@@ -46,7 +46,7 @@ export default function ErrorBanner({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss error"
-          className="rounded p-1 text-red-500 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900"
+          className="rounded p-1 text-red-500 transition-colors hover:bg-red-100"
         >
           <svg
             className="h-4 w-4"

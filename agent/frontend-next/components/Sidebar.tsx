@@ -54,20 +54,20 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
+    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-border bg-surface-secondary">
       {/* Sidebar header */}
-      <div className="border-b border-neutral-200 px-5 py-5 dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          OpenEMR AI Agent
+      <div className="border-b border-border px-5 py-5">
+        <h2 className="text-lg font-bold text-text-primary">
+          Veris
         </h2>
-        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-0.5 text-xs text-text-secondary">
           Clinical Intelligence Assistant
         </p>
       </div>
 
       {/* Example queries */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-secondary">
           Try asking&hellip;
         </p>
         <div className="flex flex-col gap-2">
@@ -76,7 +76,7 @@ export default function Sidebar({
               key={query}
               type="button"
               onClick={() => handleExampleClick(query)}
-              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-700 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-blue-600 dark:hover:bg-blue-950"
+              className="rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm text-text-primary transition-colors hover:border-primary/40 hover:bg-secondary"
             >
               {query}
             </button>
@@ -85,9 +85,9 @@ export default function Sidebar({
       </div>
 
       {/* Session info + health + footer */}
-      <div className="border-t border-neutral-200 px-4 py-4 dark:border-neutral-800">
+      <div className="border-t border-border px-4 py-4">
         {/* Session info */}
-        <div className="mb-3 space-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+        <div className="mb-3 space-y-1 text-xs text-text-secondary">
           <p>
             Session ID:{" "}
             <span className="font-mono">{threadId.slice(0, 8)}&hellip;</span>
@@ -100,27 +100,27 @@ export default function Sidebar({
           <div className="flex items-center gap-2 text-xs">
             <span
               className={`inline-block h-2 w-2 rounded-full ${
-                apiStatus === "connected" ? "bg-green-500" : "bg-red-500"
+                apiStatus === "connected" ? "bg-emerald-500" : "bg-red-500"
               }`}
             />
-            <span className="text-neutral-600 dark:text-neutral-400">
+            <span className="text-text-secondary">
               {apiStatus === "connected" ? "API Connected" : "API Unreachable"}
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
             <span
               className={`inline-block h-2 w-2 rounded-full ${
-                openemrConnected ? "bg-green-500" : "bg-red-500"
+                openemrConnected ? "bg-emerald-500" : "bg-red-500"
               }`}
             />
-            <span className="text-neutral-600 dark:text-neutral-400">
+            <span className="text-text-secondary">
               {openemrConnected ? "OpenEMR Connected" : "OpenEMR Unreachable"}
             </span>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
+        <p className="text-[10px] text-text-muted">
           Powered by OpenEMR + Claude
         </p>
       </div>

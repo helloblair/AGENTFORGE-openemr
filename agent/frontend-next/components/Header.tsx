@@ -9,14 +9,14 @@ interface HeaderProps {
 
 export default function Header({ onToggleSidebar, onNewChat }: HeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-4 dark:border-neutral-800 dark:bg-neutral-950">
+    <header className="flex h-14 shrink-0 items-center justify-between bg-primary px-4">
       <div className="flex items-center gap-3">
         {/* Hamburger — mobile only */}
         <button
           type="button"
           onClick={onToggleSidebar}
           aria-label="Toggle sidebar"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 lg:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 lg:hidden"
         >
           <svg
             className="h-5 w-5"
@@ -31,15 +31,18 @@ export default function Header({ onToggleSidebar, onNewChat }: HeaderProps) {
           </svg>
         </button>
 
-        <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          OpenEMR Agent
+        <span className="text-sm font-bold tracking-tight text-white">
+          <span className="opacity-80">&#10003;</span>{" "}
+          Veris{" "}
+          <span className="font-normal text-white/60">|</span>{" "}
+          <span className="font-normal text-white/80">Clinical Intelligence</span>
         </span>
       </div>
 
       <button
         type="button"
         onClick={onNewChat}
-        className="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
       >
         <svg
           className="h-3.5 w-3.5"
