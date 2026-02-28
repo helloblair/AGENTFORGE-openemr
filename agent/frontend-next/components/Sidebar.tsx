@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { checkHealth } from "@/lib/api";
 
 const EXAMPLE_QUERIES = [
@@ -29,6 +30,7 @@ export default function Sidebar({
     "unreachable",
   );
   const [openemrConnected, setOpenemrConnected] = useState(false);
+  const prevApiStatus = useRef<"connected" | "unreachable" | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -36,7 +38,15 @@ export default function Sidebar({
     async function poll() {
       const health = await checkHealth();
       if (!active) return;
-      setApiStatus(health.status === "unreachable" ? "unreachable" : "connected");
+      const newStatus = health.status === "unreachable" ? "unreachable" : "connected" as const;
+
+      // Toast only when transitioning from connected → unreachable
+      if (prevApiStatus.current === "connected" && newStatus === "unreachable") {
+        toast.warning("API connection lost");
+      }
+      prevApiStatus.current = newStatus;
+
+      setApiStatus(newStatus);
       setOpenemrConnected(health.openemr_connected);
     }
 

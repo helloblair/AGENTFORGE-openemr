@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 interface FeedbackButtonsProps {
   traceId: string;
   currentFeedback: "up" | "down" | null;
@@ -13,6 +15,11 @@ export default function FeedbackButtons({
 }: FeedbackButtonsProps) {
   const voted = currentFeedback !== null;
 
+  function handleVote(score: "up" | "down") {
+    onFeedback(traceId, score);
+    toast.success("Feedback recorded — thank you!");
+  }
+
   return (
     <div className="mt-2 flex items-center gap-1">
       {/* Thumbs up */}
@@ -20,7 +27,7 @@ export default function FeedbackButtons({
         type="button"
         aria-label="Helpful response"
         disabled={voted}
-        onClick={() => onFeedback(traceId, "up")}
+        onClick={() => handleVote("up")}
         className={`rounded p-1 transition-colors ${
           currentFeedback === "up"
             ? "text-emerald-500 cursor-default"
@@ -50,7 +57,7 @@ export default function FeedbackButtons({
         type="button"
         aria-label="Unhelpful response"
         disabled={voted}
-        onClick={() => onFeedback(traceId, "down")}
+        onClick={() => handleVote("down")}
         className={`rounded p-1 transition-colors ${
           currentFeedback === "down"
             ? "text-red-500 cursor-default"

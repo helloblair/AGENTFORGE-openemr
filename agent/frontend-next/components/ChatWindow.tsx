@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { sendMessage, sendFeedback, ApiError, TimeoutError } from "@/lib/api";
 import type { Message } from "@/lib/types";
 import ChatInput from "./ChatInput";
@@ -62,26 +63,23 @@ export default function ChatWindow({
         setMessages((prev) => [...prev, assistantMessage]);
         setThreadId(res.thread_id);
       } catch (err) {
+        let errorMessage: string;
         if (err instanceof TimeoutError) {
-          setError(
-            "Request timed out. The agent may be processing a complex query.",
-          );
+          errorMessage = "Request timed out. The agent may be processing a complex query.";
         } else if (err instanceof ApiError && err.status >= 500) {
-          setError("The AI agent encountered an error. Please try again.");
+          errorMessage = "The AI agent encountered an error. Please try again.";
         } else if (
           err instanceof TypeError ||
           (err instanceof Error && err.message === "Failed to fetch")
         ) {
-          setError(
-            "Unable to reach the AI agent. Check your connection.",
-          );
+          errorMessage = "Unable to reach the AI agent. Check your connection.";
         } else {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Something went wrong. Please try again.",
-          );
+          errorMessage = err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again.";
         }
+        setError(errorMessage);
+        toast.error("Failed to reach the AI agent");
       } finally {
         setIsLoading(false);
       }
@@ -119,7 +117,9 @@ export default function ChatWindow({
           msg.trace_id === traceId ? { ...msg, feedback: vote } : msg,
         ),
       );
-      sendFeedback({ trace_id: traceId, score: vote === "up" ? 1 : 0 });
+      sendFeedback({ trace_id: traceId, score: vote === "up" ? 1 : 0 }).catch(
+        () => toast.error("Failed to submit feedback"),
+      );
     },
     [setMessages],
   );

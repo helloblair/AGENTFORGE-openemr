@@ -63,19 +63,18 @@ export async function sendMessage(request: ChatRequest): Promise<ChatResponse> {
 }
 
 export async function sendFeedback(request: FeedbackRequest): Promise<void> {
-  fetch(`${AGENT_API_URL}/feedback`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  })
-    .then((res) => {
-      if (!res.ok) {
-        console.error(`[feedback] non-2xx response: ${res.status}`);
-      }
-    })
-    .catch((err) => {
-      console.error("[feedback] network error:", err);
+  try {
+    const res = await fetch(`${AGENT_API_URL}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
     });
+    if (!res.ok) {
+      throw new ApiError(res.status, `non-2xx response: ${res.status}`);
+    }
+  } catch {
+    throw new Error("Failed to submit feedback");
+  }
 }
 
 export async function checkHealth(): Promise<{
