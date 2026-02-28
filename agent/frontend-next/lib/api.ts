@@ -3,7 +3,7 @@ import type { ChatRequest, ChatResponse, FeedbackRequest } from "./types";
 export const AGENT_API_URL =
   process.env.NEXT_PUBLIC_AGENT_API_URL ?? "http://localhost:8400";
 
-// ── Error type ────────────────────────────────────────────────────────────────
+// ── Error types ───────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
   constructor(
@@ -12,6 +12,13 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = "ApiError";
+  }
+}
+
+export class TimeoutError extends Error {
+  constructor(message = "Request timed out") {
+    super(message);
+    this.name = "TimeoutError";
   }
 }
 
@@ -33,13 +40,26 @@ async function throwIfNotOk(res: Response): Promise<void> {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function sendMessage(request: ChatRequest): Promise<ChatResponse> {
-  const res = await fetch(`${AGENT_API_URL}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
-  await throwIfNotOk(res);
-  return res.json() as Promise<ChatResponse>;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+
+  try {
+    const res = await fetch(`${AGENT_API_URL}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+    await throwIfNotOk(res);
+    return (await res.json()) as ChatResponse;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new TimeoutError();
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function sendFeedback(request: FeedbackRequest): Promise<void> {
