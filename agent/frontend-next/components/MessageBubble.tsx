@@ -4,73 +4,11 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import type { Message } from "@/lib/types";
+import ToolCallsPanel from "./ToolCallsPanel";
+import ConfidenceBar from "./ConfidenceBar";
+import EscalationWarning from "./EscalationWarning";
 
 // ── Sub-components ───────────────────────────────────────────────────────────
-
-function ToolCallsPanel({ tools }: { tools: string[] }) {
-  return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        Tools:
-      </span>
-      {tools.map((tool) => (
-        <span
-          key={tool}
-          className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-        >
-          {tool}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function ConfidenceBar({ score }: { score: number }) {
-  const pct = Math.round(score * 100);
-  const color =
-    pct >= 80
-      ? "bg-green-500"
-      : pct >= 50
-        ? "bg-yellow-500"
-        : "bg-red-500";
-
-  return (
-    <div className="mt-2 flex items-center gap-2">
-      <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-        Confidence
-      </span>
-      <div className="h-1.5 flex-1 rounded-full bg-neutral-200 dark:bg-neutral-700">
-        <div
-          className={`h-1.5 rounded-full ${color} transition-all`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
-        {pct}%
-      </span>
-    </div>
-  );
-}
-
-function EscalationWarning() {
-  return (
-    <div className="mt-2 flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-[12px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        className="h-3.5 w-3.5 shrink-0"
-      >
-        <path
-          fillRule="evenodd"
-          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.345 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"
-          clipRule="evenodd"
-        />
-      </svg>
-      This response may need human review
-    </div>
-  );
-}
 
 function FeedbackButtons({
   current,
