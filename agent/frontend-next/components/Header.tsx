@@ -39,24 +39,27 @@ export default function Header({ onToggleSidebar, onNewChat }: HeaderProps) {
         </span>
       </div>
 
-      <button
-        type="button"
-        onClick={onNewChat}
-        className="flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
-      >
-        <svg
-          className="h-3.5 w-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      <div className="flex items-center gap-2">
+        {/* <ThemeToggle /> — enable when dark mode is audited */}
+        <button
+          type="button"
+          onClick={onNewChat}
+          className="flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
         >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        New Chat
-      </button>
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          New Chat
+        </button>
+      </div>
     </header>
   );
 }
