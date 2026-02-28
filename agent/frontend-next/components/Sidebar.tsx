@@ -76,7 +76,7 @@ export default function Sidebar({
       </div>
 
       {/* Example queries */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <nav aria-label="Example queries" className="flex-1 overflow-y-auto px-4 py-4">
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-secondary">
           Try asking&hellip;
         </p>
@@ -92,7 +92,7 @@ export default function Sidebar({
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
       {/* Session info + health + footer */}
       <div className="border-t border-border px-4 py-4">
@@ -106,9 +106,10 @@ export default function Sidebar({
         </div>
 
         {/* Health status */}
-        <div className="mb-3 space-y-1.5">
+        <div className="mb-3 space-y-1.5" role="status" aria-label="System health">
           <div className="flex items-center gap-2 text-xs">
             <span
+              aria-hidden="true"
               className={`inline-block h-2 w-2 rounded-full ${
                 apiStatus === "connected" ? "bg-emerald-500" : "bg-red-500"
               }`}
@@ -119,6 +120,7 @@ export default function Sidebar({
           </div>
           <div className="flex items-center gap-2 text-xs">
             <span
+              aria-hidden="true"
               className={`inline-block h-2 w-2 rounded-full ${
                 openemrConnected ? "bg-emerald-500" : "bg-red-500"
               }`}

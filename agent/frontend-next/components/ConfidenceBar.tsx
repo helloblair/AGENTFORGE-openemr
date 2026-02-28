@@ -27,7 +27,14 @@ export default function ConfidenceBar({ score }: ConfidenceBarProps) {
       <span className="shrink-0 text-[12px] font-medium text-text-secondary">
         Confidence: {score.toFixed(2)}
       </span>
-      <div className="h-2 flex-1 rounded-full bg-border">
+      <div
+        role="meter"
+        aria-label="Confidence score"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        className="h-2 flex-1 rounded-full bg-border"
+      >
         <div
           className={`h-2 rounded-full ${color}`}
           style={{

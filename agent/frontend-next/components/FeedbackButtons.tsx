@@ -26,6 +26,7 @@ export default function FeedbackButtons({
       <button
         type="button"
         aria-label="Helpful response"
+        aria-pressed={currentFeedback === "up"}
         disabled={voted}
         onClick={() => handleVote("up")}
         className={`rounded p-1 transition-colors ${
@@ -56,6 +57,7 @@ export default function FeedbackButtons({
       <button
         type="button"
         aria-label="Unhelpful response"
+        aria-pressed={currentFeedback === "down"}
         disabled={voted}
         onClick={() => handleVote("down")}
         className={`rounded p-1 transition-colors ${

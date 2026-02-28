@@ -1,6 +1,6 @@
 export default function LoadingIndicator() {
   return (
-    <div className="flex justify-start animate-message-in-left">
+    <div role="status" aria-label="Agent is thinking" className="flex justify-start animate-message-in-left">
       <div className="max-w-[80%] rounded-2xl bg-surface-secondary px-4 py-3">
         {/* Role indicator matching MessageBubble */}
         <div className="mb-1 text-[11px] font-medium text-text-muted">

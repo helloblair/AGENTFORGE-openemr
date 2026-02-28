@@ -127,6 +127,8 @@ export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-controls="tool-calls-content"
         className="flex cursor-pointer select-none items-center gap-1.5 text-[12px] font-medium text-text-secondary hover:text-text-primary transition-colors"
       >
         {/* Chevron rotates when open */}
@@ -146,6 +148,7 @@ export default function ToolCallsPanel({ tools }: ToolCallsPanelProps) {
       </button>
 
       <div
+        id="tool-calls-content"
         className="tool-panel-content"
         data-open={isOpen}
       >

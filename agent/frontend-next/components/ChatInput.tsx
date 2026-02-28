@@ -76,6 +76,7 @@ export default function ChatInput({ onSubmit, isLoading, textareaRef: externalRe
           ref={textareaRef}
           rows={1}
           disabled={isLoading}
+          aria-label="Chat message"
           placeholder="Ask about a patient, medication, or clinical question..."
           onInput={resetHeight}
           onKeyDown={handleKeyDown}

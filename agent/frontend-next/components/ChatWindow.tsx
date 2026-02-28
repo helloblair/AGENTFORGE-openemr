@@ -31,7 +31,7 @@ export default function ChatWindow({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLLIElement>(null);
   const lastUserMessageRef = useRef<string | null>(null);
 
   // Auto-scroll to bottom on new messages or loading state change
@@ -124,8 +124,15 @@ export default function ChatWindow({
     [setMessages],
   );
 
+  // After a response arrives, return focus to the chat input
+  useEffect(() => {
+    if (!isLoading && chatInputRef?.current) {
+      chatInputRef.current.focus();
+    }
+  }, [isLoading, chatInputRef]);
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" aria-busy={isLoading}>
       {/* Message list */}
       <div className="flex-1 overflow-y-auto px-2 py-4 sm:px-4 sm:py-6">
         {messages.length === 0 && !isLoading && (
@@ -136,19 +143,29 @@ export default function ChatWindow({
           </div>
         )}
 
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <ol
+          role="log"
+          aria-live="polite"
+          aria-label="Chat messages"
+          className="mx-auto flex max-w-3xl list-none flex-col gap-4 p-0"
+        >
           {messages.map((msg, i) => (
-            <MessageBubble
-              key={i}
-              message={msg}
-              onFeedback={handleFeedback}
-            />
+            <li key={i}>
+              <MessageBubble
+                message={msg}
+                onFeedback={handleFeedback}
+              />
+            </li>
           ))}
 
-          {isLoading && <LoadingIndicator />}
+          {isLoading && (
+            <li aria-label="Agent is thinking">
+              <LoadingIndicator />
+            </li>
+          )}
 
-          <div ref={bottomRef} />
-        </div>
+          <li aria-hidden="true" ref={bottomRef} />
+        </ol>
       </div>
 
       {/* Error banner */}

@@ -30,6 +30,8 @@ export default function Home() {
 
   const handleExampleClick = useCallback((query: string) => {
     submitRef.current?.(query);
+    // Move focus to the chat input after selecting an example
+    requestAnimationFrame(() => chatInputRef.current?.focus());
   }, []);
 
   const handleNewChat = useCallback(() => {
@@ -84,19 +86,27 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col">
+      {/* Skip to main content link */}
+      <a
+        href="#main-chat"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
+      >
+        Skip to chat
+      </a>
+
       {/* Header — always visible */}
       <Header onToggleSidebar={toggleSidebar} onNewChat={handleNewChat} />
 
       {/* Body: sidebar + chat area */}
       <div className="relative flex flex-1 overflow-hidden">
         {/* Desktop sidebar — always visible at lg+ */}
-        <div className="hidden lg:block">
+        <nav aria-label="Sidebar navigation" className="hidden lg:block">
           <Sidebar
             threadId={threadId}
             messageCount={messages.length}
             onExampleClick={handleExampleClick}
           />
-        </div>
+        </nav>
 
         {/* Mobile sidebar drawer — CSS-transitioned slide + backdrop */}
         <div
@@ -129,7 +139,7 @@ export default function Home() {
         </div>
 
         {/* Chat area */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <main id="main-chat" className="flex flex-1 flex-col overflow-hidden">
           <ChatWindow
             messages={messages}
             setMessages={setMessages}
@@ -140,8 +150,10 @@ export default function Home() {
           />
 
           {/* Clinical disclaimer */}
-          <ClinicalDisclaimer />
-        </div>
+          <footer>
+            <ClinicalDisclaimer />
+          </footer>
+        </main>
       </div>
     </div>
   );
