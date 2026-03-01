@@ -26,22 +26,22 @@ from src.verification.scope_guard import (
 @pytest.mark.asyncio
 async def test_diagnosis_blocked_no_llm_call():
     """A diagnosis request should return the block message directly."""
-    resp = await run_agent("Diagnose what's wrong with me")
-    assert resp == BLOCK_MESSAGES[DIAGNOSIS_REQUEST]
+    result = await run_agent("Diagnose what's wrong with me")
+    assert result["response"].startswith(BLOCK_MESSAGES[DIAGNOSIS_REQUEST])
 
 
 @pytest.mark.asyncio
 async def test_treatment_blocked_no_llm_call():
     """A treatment/prescribe request should return the block message."""
-    resp = await run_agent("What medication should I prescribe?")
-    assert resp == BLOCK_MESSAGES[TREATMENT_REQUEST]
+    result = await run_agent("What medication should I prescribe?")
+    assert result["response"].startswith(BLOCK_MESSAGES[TREATMENT_REQUEST])
 
 
 @pytest.mark.asyncio
 async def test_out_of_scope_blocked():
     """An unrelated query should return the out-of-scope message."""
-    resp = await run_agent("Write me a poem about cats")
-    assert resp == BLOCK_MESSAGES[OUT_OF_SCOPE]
+    result = await run_agent("Write me a poem about cats")
+    assert result["response"].startswith(BLOCK_MESSAGES[OUT_OF_SCOPE])
 
 
 # ── Allowed requests reach the agent ────────────────────────────────────────
@@ -65,10 +65,10 @@ async def test_data_retrieval_reaches_agent():
             ],
         }
 
-        resp = await run_agent("Look up patient John Smith")
+        result = await run_agent("Look up patient John Smith")
         # The agent was invoked (not short-circuited).
         mock_agent.assert_called_once()
-        assert "John Smith" in resp
+        assert "John Smith" in result["response"]
 
 
 @pytest.mark.asyncio
@@ -87,12 +87,12 @@ async def test_clinical_support_reaches_agent_with_disclaimer():
             ],
         }
 
-        resp = await run_agent(
+        result = await run_agent(
             "Check drug interaction between aspirin and warfarin"
         )
         mock_agent.assert_called_once()
-        assert "known interaction" in resp
-        assert "Disclaimer" in resp or "clinical support" in resp
+        assert "known interaction" in result["response"]
+        assert "Disclaimer" in result["response"] or "clinical support" in result["response"]
 
 
 # ── Multiple blocked requests don't leak state ──────────────────────────────
@@ -103,8 +103,8 @@ async def test_sequential_blocks_independent():
     """Two blocked requests in the same thread should each return properly."""
     tid = "test-thread-blocks"
 
-    resp1 = await run_agent("Diagnose this rash", thread_id=tid)
-    assert resp1 == BLOCK_MESSAGES[DIAGNOSIS_REQUEST]
+    result1 = await run_agent("Diagnose this rash", thread_id=tid)
+    assert result1["response"].startswith(BLOCK_MESSAGES[DIAGNOSIS_REQUEST])
 
-    resp2 = await run_agent("Prescribe antibiotics", thread_id=tid)
-    assert resp2 == BLOCK_MESSAGES[TREATMENT_REQUEST]
+    result2 = await run_agent("Prescribe antibiotics", thread_id=tid)
+    assert result2["response"].startswith(BLOCK_MESSAGES[TREATMENT_REQUEST])

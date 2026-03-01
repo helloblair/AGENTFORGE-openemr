@@ -59,7 +59,6 @@ MEDICAL_KNOWLEDGE_KEYWORDS: list[str] = [
     "what is",
     "what are",
     "how does",
-    "how do",
     "how is",
     "how are",
     "difference between",
@@ -87,7 +86,6 @@ DATA_RETRIEVAL_KEYWORDS: list[str] = [
     "insurance",
     "coverage",
     "check",
-    "what",
 ]
 
 # ── Block messages ───────────────────────────────────────────────────────────

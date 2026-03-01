@@ -16,6 +16,8 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
+import re
 import time
 import uuid
 from typing import Any
@@ -35,6 +37,38 @@ logger = logging.getLogger(__name__)
 
 _langfuse_enabled: bool = bool(LANGFUSE_SECRET_KEY and LANGFUSE_PUBLIC_KEY)
 _tracer: trace.Tracer | None = None
+
+# ── PHI redaction ────────────────────────────────────────────────────────────
+# Set LANGFUSE_REDACT_PHI=0 to disable redaction (e.g. in local dev).
+
+_redact_phi_enabled: bool = os.environ.get("LANGFUSE_REDACT_PHI", "1") != "0"
+
+# Patterns that match common PHI fields in structured tool output.
+_PHI_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    # Dates of birth: DOB: 1990-01-15, DOB: 01/15/1990
+    (re.compile(r"(DOB|Date of Birth|Birth\s*Date)\s*[:=]\s*\S+", re.IGNORECASE), r"\1: [REDACTED]"),
+    # Phone numbers: (555) 123-4567, 555-123-4567, +1-555-123-4567
+    (re.compile(r"(Phone|Tel|Telephone|Phone_home|Phone_cell)\s*[:=]\s*\S+", re.IGNORECASE), r"\1: [REDACTED]"),
+    # Addresses: street lines (number + street name pattern)
+    (re.compile(r"(Address|Street)\s*[:=]\s*.+", re.IGNORECASE), r"\1: [REDACTED]"),
+    # Policy / subscriber IDs
+    (re.compile(r"(Policy\s*#?|Subscriber\s*ID|Member\s*ID)\s*[:=]\s*\S+", re.IGNORECASE), r"\1: [REDACTED]"),
+    # UUIDs (patient identifiers)
+    (re.compile(r"(UUID|Patient\s*ID)\s*[:=]\s*[0-9a-f-]{32,36}", re.IGNORECASE), r"\1: [REDACTED]"),
+    # NPI numbers
+    (re.compile(r"(NPI)\s*[:=]\s*\d+", re.IGNORECASE), r"\1: [REDACTED]"),
+    # SSN patterns (xxx-xx-xxxx)
+    (re.compile(r"\b\d{3}-\d{2}-\d{4}\b"), "[REDACTED-SSN]"),
+]
+
+
+def _redact_phi(text: str) -> str:
+    """Remove common PHI patterns from text before sending to observability."""
+    if not _redact_phi_enabled or not text:
+        return text
+    for pattern, replacement in _PHI_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
 
 
 # ── OTEL initialisation ─────────────────────────────────────────────────────
@@ -136,7 +170,8 @@ class LangfuseOtelHandler(BaseCallbackHandler):
                 "gen_ai.system": "anthropic",
                 "gen_ai.request.model": model,
                 "langfuse.trace.id": self.trace_id,
-                "langfuse.input": json.dumps(prompts),
+                "langfuse.span.type": "GENERATION",
+                "langfuse.observation.input": json.dumps(prompts),
             },
         )
         self._spans[str(run_id)] = span
@@ -170,7 +205,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
                 for gen in gens
                 if hasattr(gen, "text")
             ]
-            span.set_attribute("langfuse.output", json.dumps(generations))
+            span.set_attribute("langfuse.observation.output", _redact_phi(json.dumps(generations)))
         except Exception:
             pass
         span.end()
@@ -210,7 +245,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
             attributes={
                 "tool.name": tool_name,
                 "langfuse.trace.id": self.trace_id,
-                "langfuse.input": input_str,
+                "langfuse.observation.input": input_str,
             },
         )
         self._spans[str(run_id)] = span
@@ -225,7 +260,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
         span = self._spans.pop(str(run_id), None)
         if span is None:
             return
-        span.set_attribute("langfuse.output", output)
+        span.set_attribute("langfuse.observation.output", _redact_phi(output))
         span.end()
 
     def on_tool_error(
@@ -265,7 +300,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
             context=ctx,
             attributes={
                 "langfuse.trace.id": self.trace_id,
-                "langfuse.input": json.dumps(inputs, default=str),
+                "langfuse.observation.input": json.dumps(inputs, default=str),
             },
         )
         self._spans[str(run_id)] = span
@@ -279,7 +314,8 @@ class LangfuseOtelHandler(BaseCallbackHandler):
     ) -> None:
         span = self._spans.pop(str(run_id), None)
         if span is not None:
-            span.set_attribute("langfuse.output", json.dumps(outputs, default=str))
+            raw = json.dumps(outputs, default=str)
+            span.set_attribute("langfuse.observation.output", _redact_phi(raw))
             span.end()
 
     def on_chain_error(
@@ -295,6 +331,19 @@ class LangfuseOtelHandler(BaseCallbackHandler):
             span.set_attribute("error.message", str(error))
             span.record_exception(error)
             span.end()
+
+    # ── Trace-level I/O ─────────────────────────────────────────────────
+
+    def set_trace_input(self, text: str) -> None:
+        """Set the top-level trace input visible in the Langfuse dashboard."""
+        self._start_root()
+        if self._root_span is not None:
+            self._root_span.set_attribute("langfuse.trace.input", text)
+
+    def set_trace_output(self, text: str) -> None:
+        """Set the top-level trace output visible in the Langfuse dashboard."""
+        if self._root_span is not None:
+            self._root_span.set_attribute("langfuse.trace.output", _redact_phi(text))
 
     # ── Score logging ──────────────────────────────────────────────────
 
