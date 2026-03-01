@@ -5,8 +5,7 @@ __pycache__/
 .venv/
 node_modules/
 .langfuse/
+.claude/worktrees/
 docs/*
-!docs/CHANGELOG_SHOWCASE_SPRINT.md
-!docs/CODEBASE_AUDIT.md
-!docs/PRE_SEARCH_DOCUMENT.md
+DEMO_SCRIPT.md
 .docs/
