@@ -50,36 +50,19 @@ else
     echo "[Railway]   MYSQL_PASS=${MYSQL_PASS:+<set>}${MYSQL_PASS:-<unset>}"
 fi
 
-# Send PHP errors to stderr so Railway logs capture them
-echo "[Railway] Enabling PHP error logging to stderr..."
-PHP_INI="/etc/php82/conf.d/railway.ini"
-if [ -d "/etc/php82/conf.d" ]; then
-    cat > "$PHP_INI" <<'EOINI'
-display_errors = On
-error_reporting = E_ALL
+# Log PHP errors to stderr (Railway logs) but hide from browser
+for phpdir in /etc/php82/conf.d /etc/php81/conf.d /etc/php8/conf.d; do
+    if [ -d "$phpdir" ]; then
+        cat > "$phpdir/railway.ini" <<'EOINI'
+display_errors = Off
+error_reporting = E_ALL & ~E_WARNING & ~E_NOTICE
 log_errors = On
 error_log = /dev/stderr
 EOINI
-    echo "[Railway] PHP error display enabled via $PHP_INI"
-elif [ -d "/etc/php81/conf.d" ]; then
-    cat > "/etc/php81/conf.d/railway.ini" <<'EOINI'
-display_errors = On
-error_reporting = E_ALL
-log_errors = On
-error_log = /dev/stderr
-EOINI
-    echo "[Railway] PHP error display enabled via /etc/php81/conf.d/railway.ini"
-elif [ -d "/etc/php8/conf.d" ]; then
-    cat > "/etc/php8/conf.d/railway.ini" <<'EOINI'
-display_errors = On
-error_reporting = E_ALL
-log_errors = On
-error_log = /dev/stderr
-EOINI
-    echo "[Railway] PHP error display enabled via /etc/php8/conf.d/railway.ini"
-else
-    echo "[Railway] WARNING: Could not find PHP conf.d directory for error logging."
-fi
+        echo "[Railway] PHP error logging configured via $phpdir/railway.ini"
+        break
+    fi
+done
 
 # Hand off to the original OpenEMR entrypoint
 exec ./openemr.sh
