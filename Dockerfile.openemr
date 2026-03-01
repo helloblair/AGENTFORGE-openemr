@@ -2,9 +2,15 @@
 # Used by Railway to deploy production OpenEMR with the floating widget.
 #
 # Build: docker build -f Dockerfile.openemr -t openemr-veris .
-# Run:   docker run -p 8300:80 openemr-veris
+# Run:   docker run -p 8300:80 -e MYSQL_HOST=... openemr-veris
 
 FROM openemr/openemr:7.0.2
 
+# Veris Agent module
 COPY interface/modules/custom_modules/oe-module-veris-agent/ \
      /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-veris-agent/
+
+# Railway entrypoint — writes sqlconf.php from env vars so the image
+# skips auto_configure.php when connecting to an existing database.
+COPY docker/railway-entrypoint.sh /var/www/localhost/htdocs/openemr/railway-entrypoint.sh
+CMD ["./railway-entrypoint.sh"]
