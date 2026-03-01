@@ -6,6 +6,9 @@
 
 FROM openemr/openemr:7.0.2
 
+# Tell Railway which port to proxy to
+EXPOSE 80
+
 # Veris Agent module
 COPY interface/modules/custom_modules/oe-module-veris-agent/ \
      /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-veris-agent/
