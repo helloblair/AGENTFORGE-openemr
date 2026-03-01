@@ -55,7 +55,7 @@ for phpdir in /etc/php82/conf.d /etc/php81/conf.d /etc/php8/conf.d; do
     if [ -d "$phpdir" ]; then
         cat > "$phpdir/railway.ini" <<'EOINI'
 display_errors = Off
-error_reporting = E_ALL & ~E_WARNING & ~E_NOTICE
+error_reporting = E_ALL
 log_errors = On
 error_log = /dev/stderr
 EOINI
