@@ -2,12 +2,12 @@
 # Each case defines a user query and expected behavior.
 #
 # Categories:
-#   happy_path   — straightforward queries the agent should handle (21)
-#   edge_case    — unusual inputs that exercise error handling (11)
+#   happy_path   — straightforward queries the agent should handle (27)
+#   edge_case    — unusual inputs that exercise error handling (15)
 #   adversarial  — requests the scope guard must block (10)
-#   multi_step   — queries requiring multiple tool calls (10)
+#   multi_step   — queries requiring multiple tool calls (15)
 #
-# Total: 52 test cases
+# Total: 67 test cases
 
 test_cases:
   # ── Happy path (21) ──────────────────────────────────────────────────────
@@ -567,3 +567,166 @@ test_cases:
       - "Confidence"
     should_block: false
     pass_criteria: "3-tool chain; drug safety validator and hallucination detector both fire; confidence score displayed"
+
+  # ── lab_results tool (4) ──────────────────────────────────────────────────
+
+  - id: "HP-22"
+    category: happy_path
+    input: "What are the latest lab results for patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72?"
+    expected_tools:
+      - lab_results
+    expected_output_contains:
+      - "lab"
+    should_block: false
+    pass_criteria: "Agent invokes lab_results and returns lab value data"
+
+  - id: "HP-23"
+    category: happy_path
+    input: "Show creatinine and eGFR values for patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72"
+    expected_tools:
+      - lab_results
+    expected_output_contains:
+      - "lab"
+    should_block: false
+    pass_criteria: "Agent invokes lab_results with specific LOINC codes and returns filtered results"
+
+  - id: "EC-12"
+    category: edge_case
+    input: "Get lab results for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - lab_results
+    expected_output_contains:
+      - "lab"
+    should_block: false
+    pass_criteria: "Returns 'No lab results found' for non-existent patient UUID"
+
+  - id: "MS-11"
+    category: multi_step
+    input: "Find patient John Smith and show his lab results"
+    expected_tools:
+      - patient_lookup
+      - lab_results
+    expected_output_contains:
+      - "John"
+      - "Smith"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → lab_results to get labs by patient name"
+
+  # ── transplant_criteria_lookup tool (4) ────────────────────────────────────
+
+  - id: "HP-24"
+    category: happy_path
+    input: "What ICD-10 codes qualify for kidney transplant?"
+    expected_tools:
+      - transplant_criteria_lookup
+    expected_output_contains:
+      - "kidney"
+    should_block: false
+    pass_criteria: "Agent invokes transplant_criteria_lookup with organ_type=kidney and returns ICD-10 criteria"
+
+  - id: "HP-25"
+    category: happy_path
+    input: "Show liver transplant eligibility criteria"
+    expected_tools:
+      - transplant_criteria_lookup
+    expected_output_contains:
+      - "liver"
+    should_block: false
+    pass_criteria: "Agent invokes transplant_criteria_lookup with organ_type=liver and returns criteria"
+
+  - id: "EC-13"
+    category: edge_case
+    input: "What ICD-10 codes qualify for brain transplant?"
+    expected_tools:
+      - transplant_criteria_lookup
+    expected_output_contains:
+      - "Error"
+    should_block: false
+    pass_criteria: "Returns error for invalid organ type 'brain'"
+
+  - id: "MS-12"
+    category: multi_step
+    input: "Look up kidney transplant criteria and check if code N18.6 qualifies"
+    expected_tools:
+      - transplant_criteria_lookup
+    expected_output_contains:
+      - "kidney"
+    should_block: false
+    pass_criteria: "Agent queries transplant criteria and evaluates a specific ICD-10 code"
+
+  # ── transplant_screening tool (4) ──────────────────────────────────────────
+
+  - id: "HP-26"
+    category: happy_path
+    input: "Screen patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 for kidney transplant candidacy"
+    expected_tools:
+      - transplant_screening
+    expected_output_contains:
+      - "SCREENING"
+    should_block: false
+    pass_criteria: "Agent invokes transplant_screening with evaluate action and returns candidacy report"
+
+  - id: "HP-27"
+    category: happy_path
+    input: "Run liver transplant screening for patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72"
+    expected_tools:
+      - transplant_screening
+    expected_output_contains:
+      - "SCREENING"
+    should_block: false
+    pass_criteria: "Agent invokes transplant_screening for liver evaluation and returns MELD-based report"
+
+  - id: "EC-14"
+    category: edge_case
+    input: "Screen patient UUID 00000000-0000-0000-0000-000000000000 for heart transplant"
+    expected_tools:
+      - transplant_screening
+    expected_output_contains:
+      - "heart"
+    should_block: false
+    pass_criteria: "Handles non-existent patient UUID gracefully with missing data alerts"
+
+  - id: "EC-15"
+    category: edge_case
+    input: "Screen patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 for pancreas transplant"
+    expected_tools:
+      - transplant_screening
+    expected_output_contains:
+      - "Error"
+    should_block: false
+    pass_criteria: "Returns error for unsupported organ type 'pancreas'"
+
+  # ── Transplant screening chains (3) ────────────────────────────────────────
+
+  - id: "MS-13"
+    category: multi_step
+    input: "Find patient John Smith and screen him for lung transplant candidacy"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "SCREENING"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → transplant_screening for lung transplant evaluation"
+
+  - id: "MS-14"
+    category: multi_step
+    input: "Find Jane Doe, check her labs, and evaluate kidney transplant candidacy"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "kidney"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → transplant_screening with kidney evaluation"
+
+  - id: "MS-15"
+    category: multi_step
+    input: "Find patient John Smith and screen for liver transplant including MELD score calculation"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "MELD"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → transplant_screening; response includes MELD score computation"

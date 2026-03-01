@@ -1,0 +1,246 @@
+{
+  "source": "OPTN Policy (optn.transplant.hrsa.gov), last updated 2025-12-11",
+  "version": "2026.1",
+  "organs": {
+    "kidney": {
+      "qualifying_diagnoses": ["N18.5", "N18.6", "N19"],
+      "lab_criteria": {
+        "gfr": {
+          "operator": "<",
+          "value": 20,
+          "unit": "mL/min",
+          "loinc": "33914-3",
+          "description": "GFR below 20 mL/min or on dialysis"
+        },
+        "creatinine": {
+          "operator": ">",
+          "value": 4.0,
+          "unit": "mg/dL",
+          "loinc": "2160-0",
+          "description": "Elevated creatinine suggesting ESRD"
+        }
+      },
+      "contraindications": {
+        "active_substance_abuse": {
+          "icd10_range": "F10-F19",
+          "lookback_years": 0,
+          "severity": "absolute",
+          "description": "Active substance use disorder"
+        },
+        "active_malignancy": {
+          "icd10_range": "C00-C96",
+          "lookback_years": 5,
+          "severity": "absolute",
+          "description": "Cancer diagnosis within last 5 years"
+        },
+        "severe_obesity": {
+          "bmi_threshold": 45,
+          "severity": "relative",
+          "description": "BMI exceeding 45"
+        },
+        "severe_psychiatric": {
+          "icd10_range": "F20-F29",
+          "severity": "relative",
+          "description": "Severe untreated psychiatric illness"
+        }
+      },
+      "required_evaluations": [
+        "psychiatric_eval",
+        "cardiac_clearance",
+        "hla_typing",
+        "substance_screening",
+        "insurance_verification"
+      ],
+      "allocation_factors": [
+        "blood_type",
+        "hla_match",
+        "cpra",
+        "epts_score",
+        "waiting_time",
+        "distance"
+      ]
+    },
+    "heart": {
+      "qualifying_diagnoses": [
+        "I50.2", "I50.21", "I50.22", "I50.23",
+        "I50.4", "I50.41", "I50.42", "I50.43",
+        "I50.9",
+        "I42.0", "I42.9"
+      ],
+      "clinical_criteria": {
+        "nyha_class": {
+          "operator": ">=",
+          "value": 3,
+          "description": "NYHA Class III or IV heart failure"
+        },
+        "lvef": {
+          "operator": "<",
+          "value": 25,
+          "unit": "%",
+          "loinc": "10230-1",
+          "description": "Left ventricular ejection fraction below 25%"
+        }
+      },
+      "contraindications": {
+        "active_substance_abuse": {
+          "icd10_range": "F10-F19",
+          "lookback_years": 0,
+          "severity": "absolute",
+          "description": "Active substance use disorder"
+        },
+        "active_malignancy": {
+          "icd10_range": "C00-C96",
+          "lookback_years": 5,
+          "severity": "absolute",
+          "description": "Active malignancy within 5 years"
+        },
+        "severe_obesity": {
+          "bmi_threshold": 35,
+          "severity": "relative",
+          "description": "BMI exceeding 35"
+        },
+        "irreversible_pulmonary_hypertension": {
+          "severity": "absolute",
+          "description": "Fixed pulmonary vascular resistance > 5 Wood units"
+        }
+      },
+      "required_evaluations": [
+        "psychiatric_eval",
+        "pulmonary_function",
+        "hla_typing",
+        "substance_screening",
+        "insurance_verification",
+        "right_heart_catheterization"
+      ],
+      "allocation_factors": [
+        "medical_urgency_status",
+        "blood_type",
+        "distance",
+        "waiting_time"
+      ]
+    },
+    "lung": {
+      "qualifying_diagnoses": [
+        "J43.9", "J44.1",
+        "J84.1", "J84.9",
+        "J96.1", "J96.10", "J96.11", "J96.12"
+      ],
+      "clinical_criteria": {
+        "fev1": {
+          "operator": "<",
+          "value": 25,
+          "unit": "%predicted",
+          "loinc": "19926-5",
+          "description": "FEV1 below 25% predicted"
+        },
+        "life_expectancy_without": {
+          "operator": "<",
+          "value": 2,
+          "unit": "years",
+          "description": "Life expectancy under 2 years without transplant"
+        }
+      },
+      "contraindications": {
+        "active_substance_abuse": {
+          "icd10_range": "F10-F19",
+          "lookback_years": 0,
+          "severity": "absolute",
+          "description": "Active substance use disorder"
+        },
+        "active_malignancy": {
+          "icd10_range": "C00-C96",
+          "lookback_years": 5,
+          "severity": "absolute",
+          "description": "Active malignancy within 5 years"
+        },
+        "severe_obesity": {
+          "bmi_threshold": 35,
+          "severity": "relative",
+          "description": "BMI exceeding 35"
+        },
+        "active_infection": {
+          "severity": "absolute",
+          "description": "Untreated sepsis or chronic active infection"
+        }
+      },
+      "required_evaluations": [
+        "psychiatric_eval",
+        "cardiac_clearance",
+        "substance_screening",
+        "insurance_verification",
+        "6_minute_walk_test"
+      ],
+      "allocation_factors": [
+        "lung_allocation_score",
+        "blood_type",
+        "organ_size",
+        "distance"
+      ]
+    },
+    "liver": {
+      "qualifying_diagnoses": [
+        "K70.4",
+        "K72.1", "K72.10", "K72.11",
+        "K72.9",
+        "K74.6", "K74.60", "K74.69"
+      ],
+      "clinical_criteria": {
+        "meld_score": {
+          "operator": ">=",
+          "value": 15,
+          "description": "MELD score 15 or higher indicates transplant benefit"
+        },
+        "child_pugh": {
+          "operator": ">=",
+          "value": "B",
+          "description": "Child-Pugh class B or C"
+        }
+      },
+      "contraindications": {
+        "active_alcohol_use": {
+          "icd10_range": "F10",
+          "lookback_months": 6,
+          "severity": "absolute",
+          "description": "Active alcohol use within 6 months"
+        },
+        "active_malignancy": {
+          "icd10_range": "C00-C96",
+          "lookback_years": 5,
+          "severity": "absolute",
+          "description": "Except hepatocellular carcinoma within Milan criteria"
+        },
+        "severe_cardiac_disease": {
+          "severity": "absolute",
+          "description": "Uncorrectable severe cardiac disease"
+        },
+        "severe_obesity": {
+          "bmi_threshold": 40,
+          "severity": "relative",
+          "description": "BMI exceeding 40"
+        }
+      },
+      "required_evaluations": [
+        "psychiatric_eval",
+        "cardiac_clearance",
+        "substance_screening",
+        "insurance_verification",
+        "hepatology_assessment"
+      ],
+      "allocation_factors": [
+        "meld_peld_score",
+        "blood_type",
+        "distance",
+        "waiting_time"
+      ]
+    }
+  },
+  "general_absolute_contraindications": [
+    "Active, untreated sepsis",
+    "Irreversible multi-organ failure beyond the target organ",
+    "Active substance abuse (drugs or alcohol)",
+    "Metastatic cancer or active malignancy within 5 years (organ-specific exceptions apply)",
+    "Severe, untreated psychiatric illness preventing adherence to post-transplant regimen",
+    "Documented inability or unwillingness to adhere to immunosuppression therapy",
+    "Advanced age with significant comorbidities (evaluated case-by-case)"
+  ]
+}

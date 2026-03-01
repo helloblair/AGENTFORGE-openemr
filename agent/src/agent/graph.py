@@ -29,7 +29,7 @@ from langgraph.prebuilt import create_react_agent
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
-from src.tools import allergy_check, drug_interaction_check, insurance_coverage, medication_list, patient_lookup, problem_list, provider_lookup
+from src.tools import allergy_check, drug_interaction_check, insurance_coverage, lab_results, medication_list, patient_lookup, problem_list, provider_lookup, transplant_criteria_lookup, transplant_screening
 from src.verification.confidence import compute_confidence, format_confidence_message
 from src.verification.hallucination import check_hallucination
 from src.verification.drug_safety import (
@@ -85,6 +85,11 @@ AVAILABLE TOOLS:
 - provider_lookup: Search for providers/practitioners by name or specialty
 - insurance_coverage: Get a patient's insurance coverage details (requires patient UUID)
 - drug_interaction_check: Check for drug-drug interactions (uses NIH RxNorm)
+- lab_results: Get a patient's lab values (creatinine, eGFR, bilirubin, INR, etc.) (requires patient UUID)
+- transplant_criteria_lookup: Look up ICD-10 codes and OPTN criteria for organ transplant screening
+- transplant_screening: Run organ transplant candidacy screening — computes clinical scores \
+(eGFR, MELD, NYHA/EF, FEV1), screens contraindications, and generates a candidacy report \
+(requires patient UUID and organ type: kidney, heart, lung, or liver)
 
 For multi-step queries, chain tools logically. Example:
 "Check if John Smith is allergic to any of his current medications"
@@ -94,12 +99,21 @@ For multi-step queries, chain tools logically. Example:
 → 4. problem_list(UUID) → get active conditions
 → 5. Report findings
 
+Transplant screening example:
+"Screen John Smith for kidney transplant candidacy"
+→ 1. patient_lookup("John Smith") → get UUID
+→ 2. transplant_screening(UUID, organ_type="kidney") → full candidacy report
+
+SAFETY RULE: Transplant screening reports are clinical decision support only. \
+Always include the screening disclaimer and never present results as a definitive \
+transplant listing decision.
+
 Always cite which tool provided each piece of information.\
 """
 
 # ── Inner agent (pre-built ReAct graph) ─────────────────────────────────────
 
-_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, provider_lookup, insurance_coverage, drug_interaction_check]
+_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, provider_lookup, insurance_coverage, drug_interaction_check, lab_results, transplant_criteria_lookup, transplant_screening]
 
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",

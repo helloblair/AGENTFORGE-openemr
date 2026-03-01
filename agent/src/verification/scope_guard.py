@@ -53,6 +53,23 @@ CLINICAL_SUPPORT_KEYWORDS: list[str] = [
     "conditions",
     "problem",
     "problems",
+    "transplant",
+    "candidacy",
+    "screening",
+    "meld",
+    "egfr",
+    "ckd",
+    "nyha",
+    "fev1",
+    "organ",
+    "kidney transplant",
+    "liver transplant",
+    "heart transplant",
+    "lung transplant",
+    "lab results",
+    "lab values",
+    "ejection fraction",
+    "contraindication",
 ]
 
 MEDICAL_KNOWLEDGE_KEYWORDS: list[str] = [
@@ -86,6 +103,12 @@ DATA_RETRIEVAL_KEYWORDS: list[str] = [
     "insurance",
     "coverage",
     "check",
+    "lab",
+    "labs",
+    "observation",
+    "test results",
+    "creatinine",
+    "bilirubin",
 ]
 
 # ── Block messages ───────────────────────────────────────────────────────────

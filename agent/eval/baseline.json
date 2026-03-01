@@ -1,12 +1,12 @@
 {
   "description": "Baseline eval results. Update with: python eval/run_evals.py --update-baseline",
-  "last_updated": "2026-02-27",
+  "last_updated": "2026-03-01",
   "categories": {
-    "happy_path":  {"total": 21, "passed": 21, "pass_rate": 100.0},
-    "edge_case":   {"total": 11, "passed": 11, "pass_rate": 100.0},
+    "happy_path":  {"total": 27, "passed": 27, "pass_rate": 100.0},
+    "edge_case":   {"total": 15, "passed": 15, "pass_rate": 100.0},
     "adversarial": {"total": 10, "passed": 10, "pass_rate": 100.0},
-    "multi_step":  {"total": 10, "passed": 10, "pass_rate": 100.0}
+    "multi_step":  {"total": 15, "passed": 15, "pass_rate": 100.0}
   },
-  "overall": {"total": 52, "passed": 52, "pass_rate": 100.0},
+  "overall": {"total": 67, "passed": 67, "pass_rate": 100.0},
   "regression_threshold": 5.0
 }
