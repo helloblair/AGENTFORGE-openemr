@@ -43,6 +43,42 @@ global \$sqlconf;
 ?>
 EOPHP
     echo "[Railway] sqlconf.php written — skipping auto_configure."
+else
+    echo "[Railway] WARNING: MYSQL_HOST/USER/PASS not all set — sqlconf.php NOT written."
+    echo "[Railway]   MYSQL_HOST=${MYSQL_HOST:-<unset>}"
+    echo "[Railway]   MYSQL_USER=${MYSQL_USER:-<unset>}"
+    echo "[Railway]   MYSQL_PASS=${MYSQL_PASS:+<set>}${MYSQL_PASS:-<unset>}"
+fi
+
+# Send PHP errors to stderr so Railway logs capture them
+echo "[Railway] Enabling PHP error logging to stderr..."
+PHP_INI="/etc/php82/conf.d/railway.ini"
+if [ -d "/etc/php82/conf.d" ]; then
+    cat > "$PHP_INI" <<'EOINI'
+display_errors = On
+error_reporting = E_ALL
+log_errors = On
+error_log = /dev/stderr
+EOINI
+    echo "[Railway] PHP error display enabled via $PHP_INI"
+elif [ -d "/etc/php81/conf.d" ]; then
+    cat > "/etc/php81/conf.d/railway.ini" <<'EOINI'
+display_errors = On
+error_reporting = E_ALL
+log_errors = On
+error_log = /dev/stderr
+EOINI
+    echo "[Railway] PHP error display enabled via /etc/php81/conf.d/railway.ini"
+elif [ -d "/etc/php8/conf.d" ]; then
+    cat > "/etc/php8/conf.d/railway.ini" <<'EOINI'
+display_errors = On
+error_reporting = E_ALL
+log_errors = On
+error_log = /dev/stderr
+EOINI
+    echo "[Railway] PHP error display enabled via /etc/php8/conf.d/railway.ini"
+else
+    echo "[Railway] WARNING: Could not find PHP conf.d directory for error logging."
 fi
 
 # Hand off to the original OpenEMR entrypoint
