@@ -1,0 +1,10 @@
+# Custom OpenEMR image with Veris Agent module baked in.
+# Used by Railway to deploy production OpenEMR with the floating widget.
+#
+# Build: docker build -f Dockerfile.openemr -t openemr-veris .
+# Run:   docker run -p 8300:80 openemr-veris
+
+FROM openemr/openemr:flex
+
+COPY interface/modules/custom_modules/oe-module-veris-agent/ \
+     /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-veris-agent/

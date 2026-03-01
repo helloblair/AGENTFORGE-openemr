@@ -20,6 +20,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:8300",
         "https://localhost:9300",
+        "https://openemr-production-7df2.up.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
