@@ -13,4 +13,5 @@ COPY interface/modules/custom_modules/oe-module-veris-agent/ \
 # Railway entrypoint — writes sqlconf.php from env vars so the image
 # skips auto_configure.php when connecting to an existing database.
 COPY docker/railway-entrypoint.sh /var/www/localhost/htdocs/openemr/railway-entrypoint.sh
+RUN chmod +x /var/www/localhost/htdocs/openemr/railway-entrypoint.sh
 CMD ["./railway-entrypoint.sh"]
