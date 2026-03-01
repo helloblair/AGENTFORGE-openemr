@@ -64,5 +64,52 @@ EOINI
     fi
 done
 
+# Drop a lightweight diagnostic page so we can test PHP independently
+cat > /var/www/localhost/htdocs/openemr/railway-health.php <<'EOPHP'
+<?php
+header('Content-Type: text/plain');
+echo "OK\n";
+echo "PHP " . phpversion() . "\n";
+
+// Test DB if env vars present
+$host = getenv('MYSQL_HOST') ?: '(unset)';
+$port = getenv('MYSQL_PORT') ?: '3306';
+$user = getenv('MYSQL_USER') ?: '(unset)';
+$pass = getenv('MYSQL_PASS') ?: '';
+$db   = getenv('MYSQL_DATABASE') ?: 'openemr';
+
+echo "DB host: $host:$port\n";
+
+if ($host !== '(unset)' && $user !== '(unset)') {
+    try {
+        $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db", $user, $pass, [
+            PDO::ATTR_TIMEOUT => 5,
+        ]);
+        $ver = $pdo->query("SELECT VERSION()")->fetchColumn();
+        echo "DB connected: $ver\n";
+    } catch (Exception $e) {
+        echo "DB error: " . $e->getMessage() . "\n";
+    }
+} else {
+    echo "DB: env vars not set, skipping connection test\n";
+}
+EOPHP
+echo "[Railway] Diagnostic page written to /railway-health.php"
+
+# Test DB connectivity from the shell before starting Apache
+if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ]; then
+    echo "[Railway] Testing DB connectivity to ${MYSQL_HOST}:${MYSQL_PORT}..."
+    if php -r "
+        try {
+            \$p = new PDO('mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}','${MYSQL_USER}','${MYSQL_PASS}',[PDO::ATTR_TIMEOUT=>5]);
+            echo 'DB OK: '.\$p->query('SELECT VERSION()')->fetchColumn().PHP_EOL;
+        } catch(Exception \$e) {
+            echo 'DB FAIL: '.\$e->getMessage().PHP_EOL;
+        }
+    "; then
+        echo "[Railway] DB test complete."
+    fi
+fi
+
 # Hand off to the original OpenEMR entrypoint
 exec ./openemr.sh
