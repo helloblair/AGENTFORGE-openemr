@@ -35,7 +35,7 @@ export default function Header({ onToggleSidebar, onNewChat }: HeaderProps) {
       {/* Center: Veris wordmark — absolute centered on mobile, static on desktop */}
       <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0">
         <span className="truncate text-xl font-bold tracking-tight text-white">
-          <span className="text-emerald-500">&#10003;</span>
+          <span className="text-accent">&#10003;</span>
           {" "}Veris
           <span className="hidden font-normal text-white/70 sm:inline">
             {" "}| Clinical Intelligence

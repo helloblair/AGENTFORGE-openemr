@@ -68,7 +68,7 @@ export default function Sidebar({
       {/* Sidebar header */}
       <div className="border-b border-border px-5 py-5">
         <h2 className="text-xl font-bold tracking-tight text-text-primary">
-          <span className="text-emerald-500">&#10003;</span> Veris
+          <span className="text-accent">&#10003;</span> Veris
         </h2>
         <p className="mt-0.5 text-xs text-text-secondary">
           Clinical Intelligence
@@ -111,7 +111,7 @@ export default function Sidebar({
             <span
               aria-hidden="true"
               className={`inline-block h-2 w-2 rounded-full ${
-                apiStatus === "connected" ? "bg-emerald-500" : "bg-red-500"
+                apiStatus === "connected" ? "bg-accent" : "bg-error"
               }`}
             />
             <span className="text-text-secondary">
@@ -122,7 +122,7 @@ export default function Sidebar({
             <span
               aria-hidden="true"
               className={`inline-block h-2 w-2 rounded-full ${
-                openemrConnected ? "bg-emerald-500" : "bg-red-500"
+                openemrConnected ? "bg-accent" : "bg-error"
               }`}
             />
             <span className="text-text-secondary">

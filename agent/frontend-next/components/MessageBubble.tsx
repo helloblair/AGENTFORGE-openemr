@@ -27,7 +27,7 @@ const markdownComponents: Components = {
     }
     return (
       <code
-        className={`block overflow-x-auto rounded-lg bg-slate-900 p-3 font-mono text-[13px] leading-relaxed text-slate-100 ${className ?? ""}`}
+        className={`block overflow-x-auto rounded-lg bg-primary p-3 font-mono text-[13px] leading-relaxed text-white ${className ?? ""}`}
         {...rest}
       >
         {children}

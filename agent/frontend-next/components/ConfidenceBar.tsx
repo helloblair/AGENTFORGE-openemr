@@ -11,10 +11,10 @@ export default function ConfidenceBar({ score }: ConfidenceBarProps) {
   const pct = Math.round(score * 100);
   const color =
     score >= 0.8
-      ? "bg-emerald-500"
+      ? "bg-accent"
       : score >= 0.6
-        ? "bg-amber-500"
-        : "bg-red-500";
+        ? "bg-warning"
+        : "bg-error";
 
   useEffect(() => {
     // Trigger after first render so the bar animates from 0 → target width

@@ -72,31 +72,31 @@ interface ToolMeta {
 const TOOL_META: Record<string, ToolMeta> = {
   patient_lookup: {
     icon: PatientIcon,
-    borderColor: "border-l-[#1E3A5F]",       // primary blue
+    borderColor: "border-l-primary",
   },
   allergy_check: {
     icon: AllergyIcon,
-    borderColor: "border-l-[#EF4444]",        // red/warning
+    borderColor: "border-l-error",
   },
   medication_list: {
     icon: MedicationIcon,
-    borderColor: "border-l-[#10B981]",         // emerald
+    borderColor: "border-l-accent",
   },
   problem_list: {
     icon: ProblemListIcon,
-    borderColor: "border-l-[#F59E0B]",         // amber
+    borderColor: "border-l-warning",
   },
   provider_lookup: {
     icon: ProviderIcon,
-    borderColor: "border-l-[#6366F1]",         // indigo
+    borderColor: "border-l-primary",
   },
   insurance_coverage: {
     icon: InsuranceIcon,
-    borderColor: "border-l-[#8B5CF6]",         // violet
+    borderColor: "border-l-accent",
   },
   drug_interaction_check: {
     icon: DrugInteractionIcon,
-    borderColor: "border-l-[#F97316]",         // orange
+    borderColor: "border-l-warning",
   },
 };
 
@@ -106,7 +106,7 @@ const DEFAULT_META: ToolMeta = {
       <path fillRule="evenodd" d="M13.5 4.938a7 7 0 11-9.006 1.737c.28-.042.553-.112.82-.195a.75.75 0 00-.44-1.435 6.973 6.973 0 01-1.234.262A6.985 6.985 0 013 7.5c0 2.071.9 3.932 2.33 5.212l.457-.456a.75.75 0 011.06 1.06l-.457.457A6.978 6.978 0 0010 14.5c1.573 0 3.024-.52 4.192-1.395l-.357-.357a.75.75 0 011.06-1.06l.357.357A6.978 6.978 0 0016.5 7.5c0-1.573-.52-3.024-1.395-4.193l-1.09 1.09A4.478 4.478 0 0115 7.5a4.5 4.5 0 11-6.654-3.95.75.75 0 10-.692-1.333A6.003 6.003 0 004 7.5a6 6 0 1012.595-1.37.75.75 0 10-1.347.66A4.478 4.478 0 0115 7.5a4.478 4.478 0 01-.57 2.182l1.09-1.09A6.978 6.978 0 0017 7.5a7 7 0 00-3.5-6.062z" clipRule="evenodd" />
     </svg>
   ),
-  borderColor: "border-l-[#94A3B8]",
+  borderColor: "border-l-text-muted",
 };
 
 function getToolMeta(tool: string): ToolMeta {

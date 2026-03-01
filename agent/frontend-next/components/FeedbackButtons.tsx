@@ -31,10 +31,10 @@ export default function FeedbackButtons({
         onClick={() => handleVote("up")}
         className={`rounded p-1 transition-colors ${
           currentFeedback === "up"
-            ? "text-emerald-500 cursor-default"
+            ? "text-accent cursor-default"
             : voted
               ? "text-text-muted cursor-default"
-              : "text-text-muted hover:text-emerald-500"
+              : "text-text-muted hover:text-accent"
         }`}
       >
         <svg
@@ -62,10 +62,10 @@ export default function FeedbackButtons({
         onClick={() => handleVote("down")}
         className={`rounded p-1 transition-colors ${
           currentFeedback === "down"
-            ? "text-red-500 cursor-default"
+            ? "text-error cursor-default"
             : voted
               ? "text-text-muted cursor-default"
-              : "text-text-muted hover:text-red-500"
+              : "text-text-muted hover:text-error"
         }`}
       >
         <svg

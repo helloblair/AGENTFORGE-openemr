@@ -2,7 +2,7 @@
 
 export default function EscalationWarning() {
   return (
-    <div role="alert" className="mt-3 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium leading-snug text-red-800">
+    <div role="alert" className="mt-3 flex items-start gap-2 rounded-md border border-error/30 bg-error/10 px-3 py-2 text-[12px] font-medium leading-snug text-error">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
