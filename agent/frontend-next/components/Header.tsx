@@ -32,13 +32,14 @@ export default function Header({ onToggleSidebar, onNewChat }: HeaderProps) {
         </button>
       </div>
 
-      {/* Center: App name — absolute centered on mobile, static on desktop */}
+      {/* Center: Veris wordmark — absolute centered on mobile, static on desktop */}
       <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0">
-        <span className="truncate text-sm font-bold tracking-tight text-white">
-          <span className="opacity-80">&#10003;</span>{" "}
-          Veris{" "}
-          <span className="hidden font-normal text-white/60 sm:inline">|</span>{" "}
-          <span className="hidden font-normal text-white/80 sm:inline">Clinical Intelligence</span>
+        <span className="truncate text-xl font-bold tracking-tight text-white">
+          <span className="text-emerald-500">&#10003;</span>
+          {" "}Veris
+          <span className="hidden font-normal text-white/70 sm:inline">
+            {" "}| Clinical Intelligence
+          </span>
         </span>
       </div>
 

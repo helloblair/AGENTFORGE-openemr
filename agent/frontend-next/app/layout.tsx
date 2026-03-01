@@ -16,7 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Veris | Clinical Intelligence",
-  description: "AI-powered clinical intelligence assistant",
+  description: "AI-powered clinical decision support for OpenEMR",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({

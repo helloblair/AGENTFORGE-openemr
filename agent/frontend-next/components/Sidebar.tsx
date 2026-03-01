@@ -67,11 +67,11 @@ export default function Sidebar({
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-border bg-surface-secondary">
       {/* Sidebar header */}
       <div className="border-b border-border px-5 py-5">
-        <h2 className="text-lg font-bold text-text-primary">
-          Veris
+        <h2 className="text-xl font-bold tracking-tight text-text-primary">
+          <span className="text-emerald-500">&#10003;</span> Veris
         </h2>
         <p className="mt-0.5 text-xs text-text-secondary">
-          Clinical Intelligence Assistant
+          Clinical Intelligence
         </p>
       </div>
 
