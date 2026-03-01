@@ -27,3 +27,9 @@ export interface Message {
   requires_escalation?: boolean;
   feedback?: "up" | "down" | null;
 }
+
+export interface EhrContext {
+  patient_pid: string;
+  encounter_id: string;
+  ehr_user: string;
+}

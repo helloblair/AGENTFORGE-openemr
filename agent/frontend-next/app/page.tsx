@@ -1,16 +1,28 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
-import type { Message } from "@/lib/types";
+import type { Message, EhrContext } from "@/lib/types";
 import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
 import ChatWindow from "@/components/ChatWindow";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import ClinicalDisclaimer from "@/components/ClinicalDisclaimer";
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const isEmbedded = searchParams.get("embedded") === "true";
+
+  const ehrContext: EhrContext | undefined = isEmbedded
+    ? {
+        patient_pid: searchParams.get("patient_pid") ?? "",
+        encounter_id: searchParams.get("encounter_id") ?? "",
+        ehr_user: searchParams.get("ehr_user") ?? "",
+      }
+    : undefined;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -94,49 +106,55 @@ export default function Home() {
         Skip to chat
       </a>
 
-      {/* Header — always visible */}
-      <Header onToggleSidebar={toggleSidebar} onNewChat={handleNewChat} />
+      {/* Header — hidden when embedded in OpenEMR iframe */}
+      {!isEmbedded && (
+        <Header onToggleSidebar={toggleSidebar} onNewChat={handleNewChat} />
+      )}
 
       {/* Body: sidebar + chat area */}
       <div className="relative flex flex-1 overflow-hidden">
-        {/* Desktop sidebar — always visible at lg+ */}
-        <nav aria-label="Sidebar navigation" className="hidden lg:block">
-          <Sidebar
-            threadId={threadId}
-            messageCount={messages.length}
-            onExampleClick={handleExampleClick}
-          />
-        </nav>
-
-        {/* Mobile sidebar drawer — CSS-transitioned slide + backdrop */}
-        <div
-          className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
-          aria-hidden={!sidebarOpen}
-        >
-          {/* Backdrop */}
-          <div
-            className="sidebar-backdrop absolute inset-0 bg-black/40"
-            data-open={sidebarOpen}
-            onClick={closeSidebar}
-          />
-          {/* Drawer */}
-          <div
-            ref={drawerRef}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Navigation sidebar"
-            className="sidebar-drawer relative z-10 h-full w-[280px] shadow-xl outline-none"
-            data-open={sidebarOpen}
-          >
+        {/* Desktop sidebar — hidden when embedded */}
+        {!isEmbedded && (
+          <nav aria-label="Sidebar navigation" className="hidden lg:block">
             <Sidebar
               threadId={threadId}
               messageCount={messages.length}
               onExampleClick={handleExampleClick}
-              onClose={closeSidebar}
             />
+          </nav>
+        )}
+
+        {/* Mobile sidebar drawer — hidden when embedded */}
+        {!isEmbedded && (
+          <div
+            className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
+            aria-hidden={!sidebarOpen}
+          >
+            {/* Backdrop */}
+            <div
+              className="sidebar-backdrop absolute inset-0 bg-black/40"
+              data-open={sidebarOpen}
+              onClick={closeSidebar}
+            />
+            {/* Drawer */}
+            <div
+              ref={drawerRef}
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation sidebar"
+              className="sidebar-drawer relative z-10 h-full w-[280px] shadow-xl outline-none"
+              data-open={sidebarOpen}
+            >
+              <Sidebar
+                threadId={threadId}
+                messageCount={messages.length}
+                onExampleClick={handleExampleClick}
+                onClose={closeSidebar}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Chat area */}
         <main id="main-chat" className="flex flex-1 flex-col overflow-hidden">
@@ -147,14 +165,25 @@ export default function Home() {
             setThreadId={setThreadId}
             onReady={handleReady}
             chatInputRef={chatInputRef}
+            ehrContext={ehrContext}
           />
 
-          {/* Clinical disclaimer */}
-          <footer>
-            <ClinicalDisclaimer />
-          </footer>
+          {/* Clinical disclaimer — hidden when embedded */}
+          {!isEmbedded && (
+            <footer>
+              <ClinicalDisclaimer />
+            </footer>
+          )}
         </main>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

@@ -18,6 +18,8 @@ app.add_middleware(
     allow_origins=[
         "https://veris-teal.vercel.app",
         "http://localhost:3000",
+        "http://localhost:8300",
+        "https://localhost:9300",
     ],
     allow_credentials=True,
     allow_methods=["*"],

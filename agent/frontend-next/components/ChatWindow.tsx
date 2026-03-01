@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { sendMessage, sendFeedback, ApiError, TimeoutError } from "@/lib/api";
-import type { Message } from "@/lib/types";
+import type { Message, EhrContext } from "@/lib/types";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import LoadingIndicator from "./LoadingIndicator";
@@ -18,6 +18,8 @@ interface ChatWindowProps {
   onReady?: (submit: (text: string) => void) => void;
   /** Forwarded ref so the parent can focus the chat textarea. */
   chatInputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  /** EHR context from OpenEMR when embedded via iframe. */
+  ehrContext?: EhrContext;
 }
 
 export default function ChatWindow({
@@ -27,6 +29,7 @@ export default function ChatWindow({
   setThreadId,
   onReady,
   chatInputRef,
+  ehrContext,
 }: ChatWindowProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +50,17 @@ export default function ChatWindow({
       setIsLoading(true);
       setError(null);
 
+      // Prepend EHR context for the API call (invisible to the user)
+      let apiMessage = text;
+      if (ehrContext?.patient_pid) {
+        const parts = [`patient_pid=${ehrContext.patient_pid}`];
+        if (ehrContext.encounter_id) parts.push(`encounter_id=${ehrContext.encounter_id}`);
+        if (ehrContext.ehr_user) parts.push(`ehr_user=${ehrContext.ehr_user}`);
+        apiMessage = `[EHR Context: ${parts.join(", ")}] ${text}`;
+      }
+
       try {
-        const res = await sendMessage({ message: text, thread_id: threadId });
+        const res = await sendMessage({ message: apiMessage, thread_id: threadId });
 
         const assistantMessage: Message = {
           role: "assistant",
@@ -84,7 +96,7 @@ export default function ChatWindow({
         setIsLoading(false);
       }
     },
-    [threadId, setMessages, setThreadId],
+    [threadId, setMessages, setThreadId, ehrContext],
   );
 
   const handleRetry = useCallback(() => {
