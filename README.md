@@ -10,7 +10,7 @@ A LangGraph-powered clinical support agent integrated with OpenEMR — lets clin
 User
  |
  v
-Streamlit UI  ──POST /chat──>  FastAPI Backend
+Next.js UI  ──POST /chat──>  FastAPI Backend
                                     |
                                     v
                               LangGraph Graph
@@ -105,10 +105,10 @@ streamlit run frontend/streamlit_app.py
 
 Open http://localhost:8501
 
-### Deployed Link
+### Deployed Links
 
-> **Railway deployment:** [Add your Railway URL here]
-> (Deploy via `railway up` from the `agent/` directory)
+> **Frontend (Vercel):** https://veris-teal.vercel.app
+> **Agent API (Fly.io):** https://openemr-agent-api.fly.dev
 
 ---
 

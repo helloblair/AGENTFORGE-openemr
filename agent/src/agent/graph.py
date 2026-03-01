@@ -301,6 +301,7 @@ async def run_agent(
     )
     if langfuse_handler is not None:
         config["callbacks"] = [langfuse_handler]
+        langfuse_handler.set_trace_input(user_input)
 
     # Count messages *before* this turn so we can isolate new ones.
     snapshot_before = await graph.aget_state(config)
@@ -364,8 +365,9 @@ async def run_agent(
             value=hallucination_score,
         )
 
-    # Flush Langfuse handler to ensure all spans are sent.
+    # Set trace-level output and flush Langfuse handler.
     if langfuse_handler is not None:
+        langfuse_handler.set_trace_output(response_text)
         langfuse_handler.flush()
 
     return {

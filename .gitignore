@@ -9,3 +9,5 @@ node_modules/
 docs/*
 DEMO_SCRIPT.md
 .docs/
+.vercel
+.env*.local
