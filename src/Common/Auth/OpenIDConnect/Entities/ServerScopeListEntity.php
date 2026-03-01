@@ -253,6 +253,9 @@ class ServerScopeListEntity
                 "user/version.read",
                 "user/vital.read",
                 "user/vital.write",
+                "user/transplant_criteria.read",
+                "user/transplant_screening.read",
+                "user/transplant_screening.write",
             ];
         }
         return $this->v1ApiScopes;
@@ -291,6 +294,8 @@ class ServerScopeListEntity
                 ,'user' => ['r','s']
                 ,'version' => ['s']
                 ,'vital' => ['c','r','u','s']
+                ,'transplant_criteria' => ['r','s']
+                ,'transplant_screening' => ['c','r','u','d','s']
             ];
             $scopes = [];
             foreach ($userResources as $resource => $actions) {
@@ -422,6 +427,8 @@ class ServerScopeListEntity
             'user' => xl("user information including user name, email, and roles"),
             'version' => xl("version information including version number, release date, and release notes"),
             'vital' => xl("vital signs including height, weight, blood pressure, and heart rate"),
+            'transplant_criteria' => xl("transplant eligibility criteria including ICD-10 codes and OPTN thresholds"),
+            'transplant_screening' => xl("transplant candidacy screening records including eligibility assessments"),
             default => xl("medical records for this resource type")
         };
         if ($context == "user") {

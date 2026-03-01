@@ -266,7 +266,7 @@ async def _evaluate_candidacy(
     criteria_text = ""
     try:
         criteria_resp = await client.get(
-            f"{_API_PREFIX}/transplant/criteria",
+            f"{_API_PREFIX}/transplant_criteria",
             params={"organ_system": organ_type, "criteria_type": "qualifying_diagnosis"},
             timeout=10.0,
         )

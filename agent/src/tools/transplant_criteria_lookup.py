@@ -109,7 +109,7 @@ async def transplant_criteria_lookup(
                 params["criteria_type"] = criteria_type
 
             resp = await client.get(
-                f"{_API_PREFIX}/transplant/criteria",
+                f"{_API_PREFIX}/transplant_criteria",
                 params=params,
                 timeout=15.0,
             )
@@ -119,7 +119,7 @@ async def transplant_criteria_lookup(
                 auth._refresh_token = None
                 async with auth.get_client() as retry_client:
                     resp = await retry_client.get(
-                        f"{_API_PREFIX}/transplant/criteria",
+                        f"{_API_PREFIX}/transplant_criteria",
                         params=params,
                         timeout=15.0,
                     )

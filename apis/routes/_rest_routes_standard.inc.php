@@ -7308,13 +7308,13 @@ return [
 
     // ── Transplant Candidacy Screening ──────────────────────────────────
 
-    "GET /api/transplant/criteria" => function (HttpRestRequest $request) {
+    "GET /api/transplant_criteria" => function (HttpRestRequest $request) {
         RestConfig::request_authorization_check($request, "patients", "demo");
         $return = (new TransplantCriteriaRestController())->getAll($request, $request->query->all());
         return $return;
     },
 
-    "GET /api/transplant/criteria/:code" => function ($code, HttpRestRequest $request) {
+    "GET /api/transplant_criteria/:code" => function ($code, HttpRestRequest $request) {
         RestConfig::request_authorization_check($request, "patients", "demo");
         $return = (new TransplantCriteriaRestController())->getByCode($code, $request);
         return $return;
