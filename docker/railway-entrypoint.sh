@@ -67,7 +67,37 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
             echo "[Railway] MYSQL_ROOT_PASS set for auto_configure."
             ;;
         *)
-            echo "[Railway] Database has ${TABLE_COUNT} tables — writing sqlconf.php."
+            # Check if this is a broken install (tables exist but globals empty)
+            GLOBALS_COUNT=$(php -r "
+                try {
+                    \$p = new PDO(
+                        'mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}',
+                        '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
+                    );
+                    \$r = \$p->query('SELECT COUNT(*) FROM globals');
+                    echo \$r ? \$r->fetchColumn() : '0';
+                } catch (Exception \$e) { echo '0'; }
+            " 2>/dev/null)
+
+            if [ "$GLOBALS_COUNT" = "0" ]; then
+                echo "[Railway] WARNING: ${TABLE_COUNT} tables but globals is EMPTY — broken install detected."
+                echo "[Railway] Dropping all tables so auto_configure can rebuild properly..."
+                php -r "
+                    \$p = new PDO(
+                        'mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}',
+                        '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
+                    );
+                    \$p->exec('SET FOREIGN_KEY_CHECKS = 0');
+                    \$tables = \$p->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+                    foreach (\$tables as \$t) \$p->exec('DROP TABLE IF EXISTS ' . \$t);
+                    \$p->exec('SET FOREIGN_KEY_CHECKS = 1');
+                    echo count(\$tables) . ' tables dropped.';
+                " 2>/dev/null
+                echo "[Railway] Tables dropped. Letting openemr.sh run auto_configure."
+                export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
+                # Fall through to openemr.sh without writing sqlconf.php
+            else
+                echo "[Railway] Database has ${TABLE_COUNT} tables, ${GLOBALS_COUNT} globals — writing sqlconf.php."
             cat > "$SQLCONF" <<EOPHP
 <?php
 //  OpenEMR
@@ -103,6 +133,7 @@ global \$sqlconf;
 //////////////////////////
 EOPHP
             echo "[Railway] sqlconf.php written with \$config=1 — skipping auto_configure."
+            fi
             ;;
     esac
 else
@@ -173,67 +204,6 @@ echo $patched
 PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
-
-# ── Populate globals table if empty ──────────────────────────────────
-# The globals table has the structure but 0 rows — auto_configure
-# created tables but never seeded the defaults. Replicate what
-# Installer.class.php::insert_globals() does: read GLOBALS_METADATA
-# from library/globals.inc.php and INSERT default values.
-cat > /tmp/seed-globals.php <<'SEEDEOF'
-<?php
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
-$host  = getenv('MYSQL_HOST');
-$port  = getenv('MYSQL_PORT') ?: '3306';
-$user  = getenv('MYSQL_USER');
-$pass  = getenv('MYSQL_PASS');
-$db    = getenv('MYSQL_DATABASE') ?: 'openemr';
-
-$pdo = new PDO("mysql:host=$host;port=$port;dbname=$db", $user, $pass, [PDO::ATTR_TIMEOUT => 5]);
-$cnt = (int) $pdo->query("SELECT COUNT(*) FROM globals")->fetchColumn();
-echo "[Railway] globals table has $cnt rows\n";
-
-if ($cnt > 0) {
-    echo "[Railway] Globals already populated — skipping seed.\n";
-    exit(0);
-}
-
-echo "[Railway] Seeding globals table from defaults...\n";
-
-// Minimal stubs so globals.inc.php can be parsed
-if (!function_exists('xl')) { function xl($s) { return $s; } }
-$GLOBALS['temp_skip_translations'] = true;
-$skipGlobalEvent = true;
-
-// globals.inc.php needs some vars
-$GLOBALS['srcdir'] = '/var/www/localhost/htdocs/openemr/library';
-$GLOBALS['fileroot'] = '/var/www/localhost/htdocs/openemr';
-$GLOBALS['webroot'] = '';
-
-chdir('/var/www/localhost/htdocs/openemr');
-require '/var/www/localhost/htdocs/openemr/vendor/autoload.php';
-require '/var/www/localhost/htdocs/openemr/library/globals.inc.php';
-
-if (empty($GLOBALS_METADATA)) {
-    echo "[Railway] ERROR: GLOBALS_METADATA not found — cannot seed.\n";
-    exit(1);
-}
-
-$stmt = $pdo->prepare("INSERT INTO globals (gl_name, gl_index, gl_value) VALUES (?, '0', ?)");
-$inserted = 0;
-foreach ($GLOBALS_METADATA as $grpname => $grparr) {
-    foreach ($grparr as $fldid => $fldarr) {
-        list($fldname, $fldtype, $flddef, $flddesc) = $fldarr;
-        if (is_array($fldtype) || substr($fldtype, 0, 2) !== 'm_') {
-            $stmt->execute([$fldid, $flddef]);
-            $inserted++;
-        }
-    }
-}
-
-echo "[Railway] Seeded $inserted globals into database.\n";
-SEEDEOF
-php /tmp/seed-globals.php 2>&1
-rm -f /tmp/seed-globals.php
 
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
