@@ -6,7 +6,9 @@
 
 FROM openemr/openemr:7.0.2
 
-# Tell Railway which port to proxy to
+# Force Railway to proxy to port 80 (not 443).
+# The base image exposes both 80 and 443; ENV PORT is what Railway reads.
+ENV PORT=80
 EXPOSE 80
 
 # Veris Agent module
