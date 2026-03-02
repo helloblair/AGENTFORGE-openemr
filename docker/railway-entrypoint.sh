@@ -38,7 +38,7 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
                 [PDO::ATTR_TIMEOUT => 10]
             );
             \$count = \$p->query(
-                \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE:-openemr}'\"
+                \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE:-openemr}' AND table_type = 'BASE TABLE'\"
             )->fetchColumn();
             echo \$count;
         } catch (Exception \$e) {
@@ -67,26 +67,37 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
             echo "[Railway] MYSQL_ROOT_PASS set for auto_configure."
             ;;
         *)
-            # Check if this is a broken install (tables exist but critical data missing)
-            INSTALL_OK=$(php -r "
+            # Check install state:
+            # - ready: globals/users_secure tables exist and can be counted
+            # - incomplete: one or both critical tables do not exist yet
+            # - error: SQL check failed
+            INSTALL_STATE=$(php -r "
                 try {
                     \$p = new PDO(
                         'mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}',
                         '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
                     );
+                    \$glTable = (int)(\$p->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${MYSQL_DATABASE:-openemr}' AND table_name='globals'\")->fetchColumn() ?? 0);
+                    \$usTable = (int)(\$p->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${MYSQL_DATABASE:-openemr}' AND table_name='users_secure'\")->fetchColumn() ?? 0);
+                    if (\$glTable === 0 || \$usTable === 0) {
+                        echo \"state=incomplete,globals_table=\$glTable,users_table=\$usTable\";
+                        exit;
+                    }
                     \$gl = (int)(\$p->query('SELECT COUNT(*) FROM globals')->fetchColumn() ?? 0);
                     \$us = (int)(\$p->query('SELECT COUNT(*) FROM users_secure')->fetchColumn() ?? 0);
-                    echo \"globals=\$gl,users=\$us\";
-                } catch (Exception \$e) { echo 'globals=0,users=0'; }
+                    echo \"state=ready,globals=\$gl,users=\$us\";
+                } catch (Exception \$e) {
+                    echo 'state=error';
+                }
             " 2>/dev/null)
 
-            echo "[Railway] Install check: ${INSTALL_OK}"
+            echo "[Railway] Install check: ${INSTALL_STATE}"
 
-            # Extract counts
-            GLOBALS_COUNT=$(echo "$INSTALL_OK" | sed 's/.*globals=\([0-9]*\).*/\1/')
-            USERS_COUNT=$(echo "$INSTALL_OK" | sed 's/.*users=\([0-9]*\).*/\1/')
+            STATE=$(echo "$INSTALL_STATE" | sed -n 's/.*state=\([^,]*\).*/\1/p')
+            GLOBALS_COUNT=$(echo "$INSTALL_STATE" | sed -n 's/.*globals=\([0-9]*\).*/\1/p')
+            USERS_COUNT=$(echo "$INSTALL_STATE" | sed -n 's/.*users=\([0-9]*\).*/\1/p')
 
-            if [ "$GLOBALS_COUNT" = "0" ] || [ "$USERS_COUNT" = "0" ]; then
+            if [ "$STATE" = "ready" ] && { [ "$GLOBALS_COUNT" = "0" ] || [ "$USERS_COUNT" = "0" ]; }; then
                 echo "[Railway] WARNING: ${TABLE_COUNT} tables but globals=${GLOBALS_COUNT}, users=${USERS_COUNT} — broken install detected."
                 echo "[Railway] Dropping all tables so auto_configure can rebuild properly..."
                 php -r "
@@ -95,15 +106,23 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
                         '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
                     );
                     \$p->exec('SET FOREIGN_KEY_CHECKS = 0');
-                    \$tables = \$p->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-                    foreach (\$tables as \$t) \$p->exec('DROP TABLE IF EXISTS ' . \$t);
+                    \$objects = \$p->query(\"SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE:-openemr}'\")->fetchAll(PDO::FETCH_NUM);
+                    foreach (\$objects as \$obj) {
+                        \$name = str_replace(chr(96), chr(96) . chr(96), \$obj[0]);
+                        \$type = strtoupper(\$obj[1]);
+                        if (\$type === 'VIEW') {
+                            \$p->exec(\"DROP VIEW IF EXISTS \`{\$name}\`\");
+                        } else {
+                            \$p->exec(\"DROP TABLE IF EXISTS \`{\$name}\`\");
+                        }
+                    }
                     \$p->exec('SET FOREIGN_KEY_CHECKS = 1');
-                    echo count(\$tables) . ' tables dropped.';
+                    echo count(\$objects) . ' objects dropped.';
                 " 2>/dev/null
                 echo "[Railway] Tables dropped. Letting openemr.sh run auto_configure."
                 export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
                 # Fall through to openemr.sh without writing sqlconf.php
-            else
+            elif [ "$STATE" = "ready" ]; then
                 echo "[Railway] Database has ${TABLE_COUNT} tables, ${GLOBALS_COUNT} globals, ${USERS_COUNT} users — writing sqlconf.php."
             cat > "$SQLCONF" <<EOPHP
 <?php
@@ -140,6 +159,10 @@ global \$sqlconf;
 //////////////////////////
 EOPHP
             echo "[Railway] sqlconf.php written with \$config=1 — skipping auto_configure."
+            else
+                echo "[Railway] Install state is ${STATE:-unknown}; database appears mid-install."
+                echo "[Railway] Skipping destructive reset and letting openemr.sh continue auto_configure."
+                export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
             fi
             ;;
     esac
