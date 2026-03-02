@@ -159,9 +159,34 @@ global \$sqlconf;
 //////////////////////////
 EOPHP
             echo "[Railway] sqlconf.php written with \$config=1 — skipping auto_configure."
+            elif [ "$STATE" = "incomplete" ]; then
+                echo "[Railway] WARNING: ${TABLE_COUNT} tables but missing globals/users_secure — incomplete install detected."
+                echo "[Railway] Dropping all tables so auto_configure can rebuild from scratch..."
+                php -r "
+                    \$p = new PDO(
+                        'mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}',
+                        '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
+                    );
+                    \$p->exec('SET FOREIGN_KEY_CHECKS = 0');
+                    \$objects = \$p->query(\"SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE:-openemr}'\")
+                        ->fetchAll(PDO::FETCH_NUM);
+                    foreach (\$objects as \$obj) {
+                        \$name = str_replace(chr(96), chr(96) . chr(96), \$obj[0]);
+                        \$type = strtoupper(\$obj[1]);
+                        if (\$type === 'VIEW') {
+                            \$p->exec(\"DROP VIEW IF EXISTS \`{\$name}\`\");
+                        } else {
+                            \$p->exec(\"DROP TABLE IF EXISTS \`{\$name}\`\");
+                        }
+                    }
+                    \$p->exec('SET FOREIGN_KEY_CHECKS = 1');
+                    echo count(\$objects) . ' objects dropped.';
+                " 2>/dev/null
+                echo "[Railway] Tables dropped. Letting openemr.sh run auto_configure."
+                export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
             else
-                echo "[Railway] Install state is ${STATE:-unknown}; database appears mid-install."
-                echo "[Railway] Skipping destructive reset and letting openemr.sh continue auto_configure."
+                echo "[Railway] Install state is ${STATE:-unknown}; cannot determine database state."
+                echo "[Railway] Letting openemr.sh attempt auto_configure."
                 export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
             fi
             ;;
