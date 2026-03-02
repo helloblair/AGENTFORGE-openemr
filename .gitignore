@@ -11,3 +11,4 @@ DEMO_SCRIPT.md
 .docs/
 .vercel
 .env*.local
+mdpdf.log
