@@ -252,7 +252,7 @@ class LangfuseOtelHandler(BaseCallbackHandler):
 
     def on_tool_end(
         self,
-        output: str,
+        output: Any,
         *,
         run_id: uuid.UUID,
         **kwargs: Any,
@@ -260,7 +260,8 @@ class LangfuseOtelHandler(BaseCallbackHandler):
         span = self._spans.pop(str(run_id), None)
         if span is None:
             return
-        span.set_attribute("langfuse.observation.output", _redact_phi(output))
+        text = output if isinstance(output, str) else str(output)
+        span.set_attribute("langfuse.observation.output", _redact_phi(text))
         span.end()
 
     def on_tool_error(
