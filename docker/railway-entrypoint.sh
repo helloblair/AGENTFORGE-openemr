@@ -174,48 +174,29 @@ PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
 
-# Diagnostic page — put in interface/ so Apache serves it; chown so www can read it
-cat > "$WEBROOT/interface/railway-diag.php" <<'DIAGEOF'
-<?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-header('Content-Type: text/plain');
-echo "=== Railway Diagnostics ===\n\n";
-
-echo "1. PHP: " . PHP_VERSION . "\n";
-
-$sf = '/var/www/localhost/htdocs/openemr/sites/default/sqlconf.php';
-include $sf;
-echo "2. sqlconf: host=$host port=$port dbase=$dbase config=$config\n";
-
-echo "3. DB: ";
+# ── Runtime diagnostics (runs as root, output goes to Railway logs) ───
+php -r "
+\$host = '${MYSQL_HOST}';
+\$port = '${MYSQL_PORT}';
+\$user = '${MYSQL_USER}';
+\$pass = '${MYSQL_PASS}';
+\$db   = '${MYSQL_DATABASE:-openemr}';
 try {
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbase", $login, $pass, [PDO::ATTR_TIMEOUT=>5]);
-    echo "OK (" . $pdo->query("SELECT VERSION()")->fetchColumn() . ")\n";
-} catch (Exception $e) { echo "FAIL: " . $e->getMessage() . "\n"; $pdo = null; }
-
-if ($pdo) {
-    $cnt = $pdo->query("SELECT COUNT(*) FROM globals")->fetchColumn();
-    echo "4. globals table rows: $cnt\n";
-    if ($cnt > 0) {
-        echo "5. Sample globals:\n";
-        foreach ($pdo->query("SELECT gl_name, gl_value FROM globals LIMIT 10") as $r) {
-            echo "   {$r['gl_name']} = {$r['gl_value']}\n";
-        }
+    \$p = new PDO(\"mysql:host=\$host;port=\$port;dbname=\$db\", \$user, \$pass, [PDO::ATTR_TIMEOUT=>5]);
+    \$cnt = \$p->query('SELECT COUNT(*) FROM globals')->fetchColumn();
+    echo \"[Railway] DIAG: globals table has \$cnt rows\n\";
+    if (\$cnt > 0) {
+        foreach (\$p->query('SELECT gl_name, gl_value FROM globals LIMIT 5') as \$r)
+            echo \"[Railway] DIAG:   {\$r['gl_name']} = {\$r['gl_value']}\n\";
     }
-    echo "6. globals.php patched? ";
-    $gf = file_get_contents('/var/www/localhost/htdocs/openemr/interface/globals.php');
-    echo (strpos($gf, '[Railway] removed') !== false ? "YES" : "NO") . "\n";
-
-    echo "7. File ownership:\n";
-    echo "   globals.php: " . posix_getpwuid(fileowner('/var/www/localhost/htdocs/openemr/interface/globals.php'))['name'] . "\n";
-    echo "   sqlconf.php: " . posix_getpwuid(fileowner($sf))['name'] . "\n";
-    echo "   this file:   " . posix_getpwuid(fileowner(__FILE__))['name'] . "\n";
-    echo "   httpd runs as: " . posix_getpwuid(posix_geteuid())['name'] . "\n";
+} catch (Exception \$e) {
+    echo '[Railway] DIAG: DB query failed: ' . \$e->getMessage() . \"\n\";
 }
-DIAGEOF
-chown www:www "$WEBROOT/interface/railway-diag.php" 2>/dev/null || true
-echo "[Railway] Diagnostic page at /interface/railway-diag.php"
+\$gf = file_get_contents('$WEBROOT/interface/globals.php');
+echo '[Railway] DIAG: globals.php patched? ' . (strpos(\$gf, '[Railway] removed') !== false ? 'YES' : 'NO') . \"\n\";
+echo '[Railway] DIAG: globals.php owner=' . posix_getpwuid(fileowner('$WEBROOT/interface/globals.php'))['name'] . \"\n\";
+echo '[Railway] DIAG: sqlconf.php owner=' . posix_getpwuid(fileowner('$WEBROOT/sites/default/sqlconf.php'))['name'] . \"\n\";
+" 2>&1
 
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
