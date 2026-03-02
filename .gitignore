@@ -12,3 +12,4 @@ DEMO_SCRIPT.md
 .vercel
 .env*.local
 mdpdf.log
+.DS_Store
