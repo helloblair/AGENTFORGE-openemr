@@ -43,7 +43,8 @@ An AI-powered transplant candidacy screening system that:
 | PHP REST API | 2 Services, 2 Controllers, 7 Routes | `src/Services/`, `src/RestControllers/` |
 | Agent Tools | 3 new @tools, 3 support modules | `agent/src/tools/` (6 files) |
 | Tool Schemas | 6 tool definitions | `agent/data/transplant_tools_schema.json` |
-| Evaluation | 15 new test cases (67 total) | `agent/eval/test_cases.yaml` |
+| Evaluation | 19 new test cases (71 total) | `agent/eval/test_cases.yaml` |
+| Seed Data | 5 transplant demo patients with labs | `agent/scripts/seed_clinical_data.py` |
 
 ### New Agent Tools
 
@@ -57,8 +58,8 @@ An AI-powered transplant candidacy screening system that:
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/api/transplant/criteria` | List ICD-10 transplant criteria |
-| GET | `/api/transplant/criteria/:code` | Look up specific ICD-10 code |
+| GET | `/api/transplant_criteria` | List ICD-10 transplant criteria |
+| GET | `/api/transplant_criteria/:code` | Look up specific ICD-10 code |
 | POST | `/api/patient/:puuid/transplant_screening` | Create screening record |
 | GET | `/api/patient/:puuid/transplant_screening` | List patient screenings |
 | GET | `/api/patient/:puuid/transplant_screening/:sid` | Get specific screening |
@@ -74,4 +75,25 @@ An AI-powered transplant candidacy screening system that:
 - **Identifies missing data** so clinicians know exactly which labs/evaluations to order
 - **Maintains safety guardrails** with mandatory screening disclaimers and clinical decision support framing
 - **Expands the agent from 7 to 10 tools**, adding lab results retrieval and transplant-specific capabilities
-- **Grows the eval suite from 52 to 67 test cases** with zero regression on existing tests
+- **Grows the eval suite from 52 to 71 test cases** with zero regression on existing tests
+- **Ships with 5 transplant demo patients** (Clara Reeves/kidney, Marcus Blake/heart, Diana Patel/liver, Robert Chen-Ramirez/kidney+heart, Angela Torres/lung) seeded via REST API with full clinical profiles and lab results
+
+## Deployment Checklist
+
+```bash
+# 1. Create transplant database tables
+mysql -u openemr -p openemr < agent/sql/transplant_schema.sql
+
+# 2. Load ICD-10 reference data and OPTN criteria
+python agent/scripts/load_transplant_data.py
+
+# 3. Register OAuth2 client with transplant scopes (if not already done)
+python -m scripts.register_seed_client
+
+# 4. Seed transplant demo patients and lab results
+python -m scripts.seed_clinical_data
+docker exec -i <container> mysql -u root --password=root openemr < agent/scripts/seed_transplant_labs.sql
+
+# 5. Verify endpoints respond
+curl -H "Authorization: Bearer $TOKEN" https://<host>/apis/default/api/transplant_criteria?organ_system=kidney
+```

@@ -27,7 +27,7 @@ class TransplantCriteriaRestController
     }
 
     /**
-     * GET /api/transplant/criteria
+     * GET /api/transplant_criteria
      *
      * Returns transplant ICD-10 criteria, filterable by organ_system and criteria_type.
      *
@@ -42,7 +42,7 @@ class TransplantCriteriaRestController
     }
 
     /**
-     * GET /api/transplant/criteria/:code
+     * GET /api/transplant_criteria/:code
      *
      * Look up a specific ICD-10 code's transplant relevance.
      *
