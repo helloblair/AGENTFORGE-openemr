@@ -127,6 +127,7 @@ fi
 # error during module loading. On PHP 8.2 many undefined-global warnings
 # become errors that kill every page load. Log and continue instead.
 php <<'EOFPHP'
+<?php
 $file = '/var/www/localhost/htdocs/openemr/interface/globals.php';
 $content = file_get_contents($file);
 
