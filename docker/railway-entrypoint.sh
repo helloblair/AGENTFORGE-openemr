@@ -108,5 +108,19 @@ else
     echo "[Railway]   MYSQL_PASS=${MYSQL_PASS:+<set>}${MYSQL_PASS:-<unset>}"
 fi
 
+# ── PHP 8.2 compatibility patches ───────────────────────────────────
+# The base openemr/openemr:7.0.2 image has code that accesses undefined
+# globals, which PHP 8.2 treats as errors. These get caught by the
+# try/catch in globals.php → http_response_code(500) → die().
+# Patch the offending files at runtime so the login page renders.
+WEBROOT="/var/www/localhost/htdocs/openemr"
+
+# PatientFlowBoardEventsSubscriber: $GLOBALS['drug_screen'] → !empty(...)
+PFBS="$WEBROOT/interface/modules/zend_modules/module/PatientFlowBoard/src/PatientFlowBoard/Listener/PatientFlowBoardEventsSubscriber.php"
+if [ -f "$PFBS" ]; then
+    sed -i "s/if (\$GLOBALS\['drug_screen'\])/if (!empty(\$GLOBALS['drug_screen']))/" "$PFBS"
+    echo "[Railway] Patched PatientFlowBoardEventsSubscriber.php (drug_screen)"
+fi
+
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh

@@ -29,7 +29,7 @@ class PatientFlowBoardEventsSubscriber implements EventSubscriberInterface
     {
         $events = [];
         // we only subscribe to this event if the drug_screen is enabled as a feature
-        if ($GLOBALS['drug_screen']) {
+        if (!empty($GLOBALS['drug_screen'])) {
             $events[ServiceSaveEvent::EVENT_POST_SAVE] = 'onServicePostSaveEvent';
         }
         return $events;
