@@ -67,20 +67,27 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
             echo "[Railway] MYSQL_ROOT_PASS set for auto_configure."
             ;;
         *)
-            # Check if this is a broken install (tables exist but globals empty)
-            GLOBALS_COUNT=$(php -r "
+            # Check if this is a broken install (tables exist but critical data missing)
+            INSTALL_OK=$(php -r "
                 try {
                     \$p = new PDO(
                         'mysql:host=${MYSQL_HOST};port=${MYSQL_PORT};dbname=${MYSQL_DATABASE:-openemr}',
                         '${MYSQL_USER}', '${MYSQL_PASS}', [PDO::ATTR_TIMEOUT => 10]
                     );
-                    \$r = \$p->query('SELECT COUNT(*) FROM globals');
-                    echo \$r ? \$r->fetchColumn() : '0';
-                } catch (Exception \$e) { echo '0'; }
+                    \$gl = (int)(\$p->query('SELECT COUNT(*) FROM globals')->fetchColumn() ?? 0);
+                    \$us = (int)(\$p->query('SELECT COUNT(*) FROM users_secure')->fetchColumn() ?? 0);
+                    echo \"globals=\$gl,users=\$us\";
+                } catch (Exception \$e) { echo 'globals=0,users=0'; }
             " 2>/dev/null)
 
-            if [ "$GLOBALS_COUNT" = "0" ]; then
-                echo "[Railway] WARNING: ${TABLE_COUNT} tables but globals is EMPTY — broken install detected."
+            echo "[Railway] Install check: ${INSTALL_OK}"
+
+            # Extract counts
+            GLOBALS_COUNT=$(echo "$INSTALL_OK" | sed 's/.*globals=\([0-9]*\).*/\1/')
+            USERS_COUNT=$(echo "$INSTALL_OK" | sed 's/.*users=\([0-9]*\).*/\1/')
+
+            if [ "$GLOBALS_COUNT" = "0" ] || [ "$USERS_COUNT" = "0" ]; then
+                echo "[Railway] WARNING: ${TABLE_COUNT} tables but globals=${GLOBALS_COUNT}, users=${USERS_COUNT} — broken install detected."
                 echo "[Railway] Dropping all tables so auto_configure can rebuild properly..."
                 php -r "
                     \$p = new PDO(
@@ -97,7 +104,7 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASS" ]; then
                 export MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-${MYSQL_PASS}}"
                 # Fall through to openemr.sh without writing sqlconf.php
             else
-                echo "[Railway] Database has ${TABLE_COUNT} tables, ${GLOBALS_COUNT} globals — writing sqlconf.php."
+                echo "[Railway] Database has ${TABLE_COUNT} tables, ${GLOBALS_COUNT} globals, ${USERS_COUNT} users — writing sqlconf.php."
             cat > "$SQLCONF" <<EOPHP
 <?php
 //  OpenEMR
