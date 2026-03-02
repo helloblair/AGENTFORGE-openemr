@@ -122,36 +122,40 @@ if [ -f "$PFBS" ]; then
     echo "[Railway] Patched PatientFlowBoardEventsSubscriber.php (drug_screen)"
 fi
 
-# globals.php: make module init non-fatal
-# The base image (7.0.2) has: catch (\Exception $ex) { error_log(...); die(); }
-# The die() kills every page when any module throws during init on PHP 8.2.
-# Remove the die() so the page continues loading.
+# globals.php: make module/kernel init non-fatal
+# The base image (7.0.2) has two catch blocks with die():
+#   Line ~386: catch (\Throwable $e) { ... die(); }   — kernel init
+#   Line ~764: catch (\Throwable $ex) { ... die(); }  — module init
+# PHP 8.2 undefined-global errors propagate here and kill every page.
+# Comment out both die() calls so pages continue loading.
 cat > /tmp/patch-globals.php <<'PATCHEOF'
 <?php
 $file = '/var/www/localhost/htdocs/openemr/interface/globals.php';
 $lines = file($file);
 $patched = 0;
-$in_module_catch = false;
+$in_catch = false;
 
 foreach ($lines as $i => &$line) {
-    // Match: catch (\Exception $ex) — the one after ModulesApplication
-    if (strpos($line, 'catch') !== false && strpos($line, 'Exception') !== false
-        && strpos($line, 'AccessDenied') === false && $i > 600) {
-        // We're in the module init catch block (after line 600 in the file)
-        $in_module_catch = true;
+    // Match catch blocks that use \Throwable (skip AccessDeniedException)
+    if (strpos($line, 'catch') !== false && strpos($line, 'Throwable') !== false) {
+        $in_catch = true;
         continue;
     }
-    if ($in_module_catch && strpos($line, 'die()') !== false) {
+    if ($in_catch && strpos($line, 'die()') !== false) {
         $line = str_replace('die();', '// die(); // [Railway] removed — non-fatal', $line);
         $patched++;
-        $in_module_catch = false;
+        $in_catch = false;
+    }
+    // Reset if we hit another catch or closing brace without finding die()
+    if ($in_catch && (strpos($line, 'catch') !== false || trim($line) === '}')) {
+        $in_catch = false;
     }
 }
 
 file_put_contents($file, implode('', $lines));
 echo $patched
-    ? "[Railway] Patched globals.php OK — removed die() from module init catch ($patched)\n"
-    : "[Railway] WARNING: globals.php die() not found in module catch block\n";
+    ? "[Railway] Patched globals.php OK — removed $patched die() calls from Throwable catch blocks\n"
+    : "[Railway] WARNING: no Throwable catch die() found in globals.php\n";
 PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
