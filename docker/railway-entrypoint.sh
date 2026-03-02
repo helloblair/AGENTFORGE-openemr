@@ -210,6 +210,7 @@ $GLOBALS['fileroot'] = '/var/www/localhost/htdocs/openemr';
 $GLOBALS['webroot'] = '';
 
 chdir('/var/www/localhost/htdocs/openemr');
+require '/var/www/localhost/htdocs/openemr/vendor/autoload.php';
 require '/var/www/localhost/htdocs/openemr/library/globals.inc.php';
 
 if (empty($GLOBALS_METADATA)) {
