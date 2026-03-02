@@ -111,5 +111,33 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ]; then
     fi
 fi
 
-# Hand off to the original OpenEMR entrypoint
-exec ./openemr.sh
+# Start OpenEMR entrypoint in background so we can run diagnostics after
+./openemr.sh &
+OPENEMR_PID=$!
+
+# Wait for Apache to be ready
+sleep 12
+
+echo "[Railway] === INTERNAL DIAGNOSTIC ==="
+echo "[Railway] Apache config test:"
+httpd -t 2>&1 || true
+
+echo "[Railway] Listening ports:"
+netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || true
+
+echo "[Railway] Testing localhost:80 ..."
+wget -q -O - --server-response http://localhost:80/railway-health.php 2>&1 | head -30 || true
+
+echo "[Railway] Testing localhost:443 ..."
+wget -q -O - --no-check-certificate --server-response https://localhost:443/railway-health.php 2>&1 | head -30 || true
+
+echo "[Railway] Apache error log (last 20 lines):"
+tail -20 /var/log/apache2/error.log 2>/dev/null || \
+tail -20 /var/log/httpd/error_log 2>/dev/null || \
+tail -20 /var/log/apache2/error_log 2>/dev/null || \
+echo "(no error log found)"
+
+echo "[Railway] === END DIAGNOSTIC ==="
+
+# Keep container alive
+wait $OPENEMR_PID
