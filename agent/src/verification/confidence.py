@@ -49,6 +49,8 @@ _EMPTY_RESULT_PATTERNS = [
     re.compile(r"no\s+(patients?|results?)\s+found", re.IGNORECASE),
     re.compile(r"no\s+active\s+.*documented", re.IGNORECASE),
     re.compile(r"no\s+known\s+drug\s+interactions?\s+found", re.IGNORECASE),
+    re.compile(r"no\s+lab\s+results?\s+found", re.IGNORECASE),
+    re.compile(r"no\s+transplant\s+(criteria|screening)\s+(records?\s+)?found", re.IGNORECASE),
 ]
 
 # Patterns indicating tool-level errors.

@@ -90,6 +90,9 @@ CLINICAL_DATA_TOOLS = {
     "drug_interaction_check",
     "allergy_check",
     "problem_list",
+    "lab_results",
+    "transplant_screening",
+    "transplant_criteria_lookup",
 }
 
 

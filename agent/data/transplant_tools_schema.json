@@ -1,0 +1,164 @@
+{
+  "tools": [
+    {
+      "name": "lab_results",
+      "description": "Retrieve a patient's laboratory results from the medical records system. Use this when you need to check lab values such as creatinine, bilirubin, INR, eGFR, sodium, FEV1, ejection fraction, BNP, hemoglobin, or other laboratory test results.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "patient_uuid": {
+            "type": "string",
+            "description": "The patient's UUID (obtainable from patient_lookup tool)."
+          },
+          "loinc_codes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional list of LOINC codes to filter specific tests. Common codes: 2160-0 (Creatinine), 33914-3 (eGFR), 1975-2 (Bilirubin), 6301-6 (INR), 2951-2 (Sodium), 20150-9 (FEV1), 19926-5 (FEV1 % Predicted), 10230-1 (Ejection Fraction), 30934-4 (BNP)."
+          }
+        },
+        "required": ["patient_uuid"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "Formatted list of lab results with test name, value, unit, date, and LOINC code. Returns error message if patient not found or no results."
+      }
+    },
+    {
+      "name": "transplant_criteria_lookup",
+      "description": "Look up ICD-10 codes and clinical criteria relevant to organ transplant candidacy screening. Use this to find qualifying diagnoses, contraindication codes, or transplant status codes for a specific organ type.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "organ_type": {
+            "type": "string",
+            "enum": ["kidney", "heart", "lung", "liver", "general"],
+            "description": "The organ system to look up criteria for. Use 'general' for contraindications and transplant status codes that apply across all organs."
+          },
+          "criteria_type": {
+            "type": "string",
+            "enum": ["qualifying_diagnosis", "transplant_status", "complication", "contraindication", "screening"],
+            "description": "Optional filter for the type of criteria to return."
+          }
+        },
+        "required": ["organ_type"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "Formatted list of ICD-10 codes with descriptions, grouped by criteria type. Includes OPTN clinical thresholds when available."
+      }
+    },
+    {
+      "name": "transplant_screening",
+      "description": "Perform organ transplant candidacy screening for a patient. This tool orchestrates a comprehensive evaluation by gathering lab results, problem list, medications, and allergies, then cross-references against OPTN/UNOS criteria. Can also create, retrieve, and update screening records.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "patient_uuid": {
+            "type": "string",
+            "description": "The patient's UUID (obtainable from patient_lookup tool)."
+          },
+          "organ_type": {
+            "type": "string",
+            "enum": ["kidney", "heart", "lung", "liver"],
+            "description": "The target organ for transplant screening."
+          },
+          "action": {
+            "type": "string",
+            "enum": ["evaluate", "create", "get", "update"],
+            "default": "evaluate",
+            "description": "Action to perform. 'evaluate' runs full candidacy assessment, 'create' starts a new screening record, 'get' retrieves existing screenings, 'update' modifies a screening record."
+          },
+          "screening_id": {
+            "type": "integer",
+            "description": "Screening record ID, required for 'update' action."
+          },
+          "update_data": {
+            "type": "object",
+            "description": "Fields to update when action is 'update'. Valid fields include screening_status, qualifying_diagnosis_met, lab_criteria_met, bmi_eligible, substance_screening_status, psychiatric_eval_status, cardiac_clearance_status, hla_typing_status, blood_type, insurance_verified, overall_eligibility, notes."
+          }
+        },
+        "required": ["patient_uuid", "organ_type"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "For 'evaluate': Full candidacy screening report with clinical scores, contraindication flags, missing data alerts, and recommended next steps. For CRUD actions: confirmation message with screening record details."
+      }
+    },
+    {
+      "name": "check_diagnosis_eligibility",
+      "description": "Check whether a specific ICD-10 diagnosis code qualifies a patient for organ transplant referral. Returns the code's organ system, criteria type, and whether it meets qualifying diagnosis requirements.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "icd10_code": {
+            "type": "string",
+            "description": "The ICD-10-CM code to check (e.g., 'N18.6', 'I50.9', 'K74.6')."
+          }
+        },
+        "required": ["icd10_code"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "Code details including description, organ system, criteria type, and eligibility determination."
+      }
+    },
+    {
+      "name": "create_transplant_screening",
+      "description": "Create a new transplant screening record for a patient. This initializes tracking for the screening workflow including required evaluations, lab criteria, and insurance verification.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "patient_uuid": {
+            "type": "string",
+            "description": "The patient's UUID."
+          },
+          "organ_type": {
+            "type": "string",
+            "enum": ["kidney", "heart", "lung", "liver"],
+            "description": "The target organ for transplant."
+          },
+          "qualifying_diagnosis_code": {
+            "type": "string",
+            "description": "The ICD-10 code of the qualifying diagnosis."
+          },
+          "referred_by": {
+            "type": "string",
+            "description": "Name of the referring provider."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Initial screening notes."
+          }
+        },
+        "required": ["patient_uuid", "organ_type"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "Confirmation with the new screening record ID and initial status."
+      }
+    },
+    {
+      "name": "evaluate_transplant_candidacy",
+      "description": "Run a comprehensive transplant candidacy evaluation for a patient. Gathers all clinical data (labs, conditions, medications, allergies), computes organ-specific scores (eGFR, MELD, NYHA/EF, FEV1), screens for contraindications, and generates a full candidacy report with next steps.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "patient_uuid": {
+            "type": "string",
+            "description": "The patient's UUID."
+          },
+          "organ_type": {
+            "type": "string",
+            "enum": ["kidney", "heart", "lung", "liver"],
+            "description": "The target organ for transplant evaluation."
+          }
+        },
+        "required": ["patient_uuid", "organ_type"]
+      },
+      "output_schema": {
+        "type": "string",
+        "description": "Full candidacy screening report including: clinical score (with computation details), contraindication flags (absolute/relative), missing data alerts, current medications context, recommended next steps, and mandatory screening disclaimer."
+      }
+    }
+  ]
+}

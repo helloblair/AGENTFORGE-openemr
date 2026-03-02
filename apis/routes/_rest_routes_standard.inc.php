@@ -40,6 +40,8 @@ use OpenEMR\RestControllers\ProcedureRestController;
 use OpenEMR\RestControllers\ProductRegistrationRestController;
 use OpenEMR\RestControllers\RestControllerHelper;
 use OpenEMR\RestControllers\TransactionRestController;
+use OpenEMR\RestControllers\TransplantCriteriaRestController;
+use OpenEMR\RestControllers\TransplantScreeningRestController;
 use OpenEMR\RestControllers\UserRestController;
 use OpenEMR\RestControllers\VersionRestController;
 use OpenEMR\Services\Search\SearchQueryConfig;
@@ -7301,6 +7303,52 @@ return [
         RestConfig::request_authorization_check($request, "patients", "med");
         $return = (new PrescriptionRestController())->getOne($uuid);
 
+        return $return;
+    },
+
+    // ── Transplant Candidacy Screening ──────────────────────────────────
+
+    "GET /api/transplant_criteria" => function (HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $return = (new TransplantCriteriaRestController())->getAll($request, $request->query->all());
+        return $return;
+    },
+
+    "GET /api/transplant_criteria/:code" => function ($code, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $return = (new TransplantCriteriaRestController())->getByCode($code, $request);
+        return $return;
+    },
+
+    "POST /api/patient/:puuid/transplant_screening" => function ($puuid, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $data = (array) (json_decode(file_get_contents("php://input")));
+        $return = (new TransplantScreeningRestController())->post($puuid, $data, $request);
+        return $return;
+    },
+
+    "GET /api/patient/:puuid/transplant_screening" => function ($puuid, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $return = (new TransplantScreeningRestController())->getAll($puuid, $request);
+        return $return;
+    },
+
+    "GET /api/patient/:puuid/transplant_screening/:sid" => function ($puuid, $sid, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $return = (new TransplantScreeningRestController())->getOne($puuid, (int) $sid, $request);
+        return $return;
+    },
+
+    "PUT /api/patient/:puuid/transplant_screening/:sid" => function ($puuid, $sid, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $data = (array) (json_decode(file_get_contents("php://input")));
+        $return = (new TransplantScreeningRestController())->put($puuid, (int) $sid, $data, $request);
+        return $return;
+    },
+
+    "DELETE /api/patient/:puuid/transplant_screening/:sid" => function ($puuid, $sid, HttpRestRequest $request) {
+        RestConfig::request_authorization_check($request, "patients", "demo");
+        $return = (new TransplantScreeningRestController())->delete($puuid, (int) $sid, $request);
         return $return;
     }
 ];
