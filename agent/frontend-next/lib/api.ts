@@ -1,7 +1,7 @@
 import type { ChatRequest, ChatResponse, FeedbackRequest } from "./types";
 
 export const AGENT_API_URL =
-  process.env.NEXT_PUBLIC_AGENT_API_URL ?? "http://localhost:8400";
+  process.env.NEXT_PUBLIC_AGENT_API_URL ?? "http://localhost:8080";
 
 // ── Error types ───────────────────────────────────────────────────────────────
 
