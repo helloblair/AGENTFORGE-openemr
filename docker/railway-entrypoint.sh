@@ -122,12 +122,15 @@ if [ -f "$PFBS" ]; then
     echo "[Railway] Patched PatientFlowBoardEventsSubscriber.php (drug_screen)"
 fi
 
-# globals.php: make module/kernel init non-fatal
+# globals.php: make kernel + module init non-fatal
 # The base image (7.0.2) has two catch blocks with die():
-#   Line ~386: catch (\Throwable $e) { ... die(); }   — kernel init
-#   Line ~764: catch (\Throwable $ex) { ... die(); }  — module init
+#   Line ~295: catch (\Exception $e) { error_log(...); die(); }  — kernel init
+#   Line ~666: catch (\Exception $ex) { error_log(...); die(); } — module init
 # PHP 8.2 undefined-global errors propagate here and kill every page.
 # Comment out both die() calls so pages continue loading.
+#
+# NOTE: The LOCAL repo's globals.php uses \Throwable (newer code) but the
+# base Docker image (7.0.2) uses \Exception. This patcher targets the IMAGE.
 cat > /tmp/patch-globals.php <<'PATCHEOF'
 <?php
 $file = '/var/www/localhost/htdocs/openemr/interface/globals.php';
@@ -136,7 +139,14 @@ $patched = 0;
 $in_catch = false;
 
 foreach ($lines as $i => &$line) {
-    // Match catch blocks that use \Throwable (skip AccessDeniedException)
+    // Match catch (\Exception ...) — but NOT AccessDeniedException
+    if (strpos($line, 'catch') !== false
+        && strpos($line, 'Exception') !== false
+        && strpos($line, 'AccessDenied') === false) {
+        $in_catch = true;
+        continue;
+    }
+    // Also match catch (\Throwable ...) in case image is updated
     if (strpos($line, 'catch') !== false && strpos($line, 'Throwable') !== false) {
         $in_catch = true;
         continue;
@@ -154,8 +164,8 @@ foreach ($lines as $i => &$line) {
 
 file_put_contents($file, implode('', $lines));
 echo $patched
-    ? "[Railway] Patched globals.php OK — removed $patched die() calls from Throwable catch blocks\n"
-    : "[Railway] WARNING: no Throwable catch die() found in globals.php\n";
+    ? "[Railway] Patched globals.php OK — removed $patched die() calls from catch blocks\n"
+    : "[Railway] WARNING: no catch die() found in globals.php\n";
 PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
