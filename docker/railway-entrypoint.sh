@@ -124,38 +124,44 @@ fi
 
 # globals.php: make module init non-fatal (don't die on \Throwable)
 # The try/catch at ~line 764 calls http_response_code(500) + die() on ANY
-# error during module loading. On PHP 8.2 many undefined-global warnings
-# become errors that kill every page load. Log and continue instead.
-php <<'EOFPHP'
+# error during module loading. On PHP 8.2, errors during module init kill
+# every page load. Log and continue instead.
+cat > /tmp/patch-globals.php <<'PATCHEOF'
 <?php
 $file = '/var/www/localhost/htdocs/openemr/interface/globals.php';
-$content = file_get_contents($file);
+$lines = file($file);
+$patched = 0;
+$in_throwable = false;
 
-$old = <<<'PHP'
-    } catch (\Throwable $ex) {
-        http_response_code(500);
-        $logger->error($ex->getMessage(), ['exception' => $ex]);
-        die();
+foreach ($lines as $i => &$line) {
+    if (strpos($line, 'Throwable') !== false && strpos($line, 'catch') !== false) {
+        $in_throwable = true;
+        continue;
     }
-PHP;
-
-$new = <<<'PHP'
-    } catch (\Throwable $ex) {
-        error_log("[Railway] Module init error (non-fatal): " . $ex->getMessage() . " in " . $ex->getFile() . ":" . $ex->getLine());
-        if (isset($logger)) {
-            $logger->error($ex->getMessage(), ['exception' => $ex]);
+    if ($in_throwable) {
+        if (strpos($line, 'http_response_code(500)') !== false) {
+            $line = str_replace(
+                'http_response_code(500);',
+                'error_log("[Railway] Module init error (non-fatal): " . $ex->getMessage() . " in " . $ex->getFile() . ":" . $ex->getLine());',
+                $line
+            );
+            $patched++;
+        }
+        if (strpos($line, 'die()') !== false) {
+            $line = str_replace('die();', '// die(); // [Railway] removed — continue loading', $line);
+            $patched++;
+            $in_throwable = false;
         }
     }
-PHP;
-
-if (strpos($content, $old) !== false) {
-    $content = str_replace($old, $new, $content);
-    file_put_contents($file, $content);
-    echo "[Railway] Patched globals.php — module init errors are now non-fatal\n";
-} else {
-    echo "[Railway] WARNING: globals.php patch target not found (already patched or file changed)\n";
 }
-EOFPHP
+
+file_put_contents($file, implode('', $lines));
+echo $patched >= 2
+    ? "[Railway] Patched globals.php OK — module init errors are now non-fatal ($patched changes)\n"
+    : "[Railway] WARNING: globals.php patch found only $patched/2 targets\n";
+PATCHEOF
+php /tmp/patch-globals.php
+rm -f /tmp/patch-globals.php
 
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
