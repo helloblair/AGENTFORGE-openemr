@@ -151,9 +151,9 @@ Quality gates enforced automatically:
 The eval dataset is MIT-licensed and designed to be reusable for any
 EHR-integrated AI agent evaluation.
 
-**Public dataset:** [github.com/helloblair/AGENTFORGE-openemr/tree/master/agent/eval](https://github.com/helloblair/AGENTFORGE-openemr/tree/master/agent/eval)
+**Public dataset:** [github.com/helloblair/openemr-agent-eval-dataset](https://github.com/helloblair/openemr-agent-eval-dataset)
 
-- **52 labeled test cases** covering all 7 tools
+- **71 labeled test cases** covering all 10 tools
 - **4 categories:** happy_path, edge_case, adversarial, multi_step
 - **Schema:** `id`, `category`, `input`, `expected_tools`,
   `expected_output_contains`, `should_block`, `pass_criteria`

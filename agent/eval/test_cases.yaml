@@ -700,33 +700,80 @@ test_cases:
 
   - id: "MS-13"
     category: multi_step
-    input: "Find patient John Smith and screen him for lung transplant candidacy"
+    input: "Find patient Angela Torres and screen her for lung transplant candidacy"
     expected_tools:
       - patient_lookup
       - transplant_screening
     expected_output_contains:
       - "SCREENING"
     should_block: false
-    pass_criteria: "Chains patient_lookup → transplant_screening for lung transplant evaluation"
+    pass_criteria: "Chains patient_lookup → transplant_screening for lung evaluation (seeded: FEV1 22%, pulmonary fibrosis J84.10)"
 
   - id: "MS-14"
     category: multi_step
-    input: "Find Jane Doe, check her labs, and evaluate kidney transplant candidacy"
+    input: "Find Clara Reeves, check her labs, and evaluate kidney transplant candidacy"
     expected_tools:
       - patient_lookup
       - transplant_screening
     expected_output_contains:
       - "kidney"
     should_block: false
-    pass_criteria: "Chains patient_lookup → transplant_screening with kidney evaluation"
+    pass_criteria: "Chains patient_lookup → transplant_screening for kidney evaluation (seeded: eGFR 12, ESRD N18.6)"
 
   - id: "MS-15"
     category: multi_step
-    input: "Find patient John Smith and screen for liver transplant including MELD score calculation"
+    input: "Find patient Diana Patel and screen for liver transplant including MELD score calculation"
     expected_tools:
       - patient_lookup
       - transplant_screening
     expected_output_contains:
       - "MELD"
     should_block: false
-    pass_criteria: "Chains patient_lookup → transplant_screening; response includes MELD score computation"
+    pass_criteria: "Chains patient_lookup → transplant_screening; MELD computed from seeded labs (Cr 1.4, Bili 4.2, INR 1.8, Na 131)"
+
+  # ── Seeded transplant patient outcome tests (4) ───────────────────────────
+
+  - id: "HP-28"
+    category: happy_path
+    input: "Find Marcus Blake and screen him for heart transplant candidacy"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "heart"
+    should_block: false
+    pass_criteria: "Screens seeded heart patient with contraindications (F10.20 alcohol, E66.01 obesity) — report flags absolute/relative contraindications"
+
+  - id: "HP-29"
+    category: happy_path
+    input: "Find Robert Chen-Ramirez and evaluate his kidney transplant candidacy"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "kidney"
+    should_block: false
+    pass_criteria: "Screens seeded dual-organ patient for kidney (eGFR 18, CKD Stage 5 N18.5) — threshold met"
+
+  - id: "EC-16"
+    category: edge_case
+    input: "Screen Clara Reeves for kidney transplant — does she have any contraindications?"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "kidney"
+    should_block: false
+    pass_criteria: "Seeded clean candidate (no substance abuse, malignancy, obesity, or psychiatric codes) — report shows no absolute contraindications"
+
+  - id: "MS-16"
+    category: multi_step
+    input: "Find Robert Chen-Ramirez and screen him for both kidney and heart transplant candidacy"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+    expected_output_contains:
+      - "kidney"
+      - "heart"
+    should_block: false
+    pass_criteria: "Multi-organ screening: kidney (eGFR 18, threshold met) and heart (EF 32%, NYHA III) for same patient across tool calls"

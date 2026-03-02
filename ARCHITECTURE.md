@@ -180,8 +180,8 @@ invocation, and chain step. Each request gets a root span
 
 ## Open Source Contribution
 
-**Eval dataset:** `agent/eval/` — 52 labeled test cases for healthcare AI
-agent evaluation, covering all 7 OpenEMR tools.
+**Eval dataset:** [`github.com/helloblair/openemr-agent-eval-dataset`](https://github.com/helloblair/openemr-agent-eval-dataset) — 71 labeled test cases for healthcare AI
+agent evaluation, covering all 10 OpenEMR tools.
 
 **License:** MIT (see `agent/eval/LICENSE`)
 
