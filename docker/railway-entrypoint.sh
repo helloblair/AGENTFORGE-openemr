@@ -15,7 +15,7 @@ MYSQL_PORT="${MYSQL_PORT:-3306}"
 for phpdir in /etc/php82/conf.d /etc/php81/conf.d /etc/php8/conf.d; do
     if [ -d "$phpdir" ]; then
         cat > "$phpdir/railway.ini" <<'EOINI'
-display_errors = Off
+display_errors = On
 error_reporting = E_ALL
 log_errors = On
 error_log = /dev/stderr
@@ -173,6 +173,54 @@ echo $patched
 PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
+
+# Diagnostic page — curl /railway-diag.php to see errors without full page load
+cat > "$WEBROOT/railway-diag.php" <<'DIAGEOF'
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+echo "<h2>Railway Diagnostics</h2><pre>\n";
+
+echo "1. PHP version: " . PHP_VERSION . "\n";
+echo "2. sqlconf.php: ";
+$sqlconf_path = '/var/www/localhost/htdocs/openemr/sites/default/sqlconf.php';
+if (file_exists($sqlconf_path)) {
+    echo "EXISTS\n";
+    include $sqlconf_path;
+    echo "   host=$host, port=$port, dbase=$dbase, config=$config\n";
+    echo "   disable_utf8_flag=" . var_export($disable_utf8_flag, true) . "\n";
+    echo "   db_encoding=" . ($db_encoding ?? 'NOT SET') . "\n";
+} else {
+    echo "MISSING\n";
+}
+
+echo "3. DB connection: ";
+try {
+    $p = new PDO("mysql:host=$host;port=$port;dbname=$dbase", $login, $pass, [PDO::ATTR_TIMEOUT => 5]);
+    $ver = $p->query("SELECT VERSION()")->fetchColumn();
+    echo "OK (MySQL $ver)\n";
+} catch (Exception $e) {
+    echo "FAIL: " . $e->getMessage() . "\n";
+}
+
+echo "4. globals.php load: ";
+$_GET['site'] = 'default';
+$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$_SERVER['REQUEST_URI'] = '/railway-diag.php';
+$_SERVER['SCRIPT_NAME'] = '/railway-diag.php';
+$_SERVER['SERVER_NAME'] = $_SERVER['SERVER_NAME'] ?? 'localhost';
+$_SERVER['SCRIPT_FILENAME'] = __FILE__;
+$ignoreAuth = true;
+try {
+    require_once '/var/www/localhost/htdocs/openemr/interface/globals.php';
+    echo "OK\n";
+} catch (Throwable $e) {
+    echo "FAIL: " . $e->getMessage() . "\n";
+    echo "   " . $e->getFile() . ":" . $e->getLine() . "\n";
+}
+echo "</pre>\n";
+DIAGEOF
+echo "[Railway] Diagnostic page created at /railway-diag.php"
 
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
