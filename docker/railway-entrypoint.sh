@@ -15,7 +15,7 @@ MYSQL_PORT="${MYSQL_PORT:-3306}"
 for phpdir in /etc/php82/conf.d /etc/php81/conf.d /etc/php8/conf.d; do
     if [ -d "$phpdir" ]; then
         cat > "$phpdir/railway.ini" <<'EOINI'
-display_errors = On
+display_errors = Off
 error_reporting = E_ALL
 log_errors = On
 error_log = /dev/stderr
@@ -174,29 +174,65 @@ PATCHEOF
 php /tmp/patch-globals.php
 rm -f /tmp/patch-globals.php
 
-# ── Runtime diagnostics (runs as root, output goes to Railway logs) ───
-php -r "
-\$host = '${MYSQL_HOST}';
-\$port = '${MYSQL_PORT}';
-\$user = '${MYSQL_USER}';
-\$pass = '${MYSQL_PASS}';
-\$db   = '${MYSQL_DATABASE:-openemr}';
-try {
-    \$p = new PDO(\"mysql:host=\$host;port=\$port;dbname=\$db\", \$user, \$pass, [PDO::ATTR_TIMEOUT=>5]);
-    \$cnt = \$p->query('SELECT COUNT(*) FROM globals')->fetchColumn();
-    echo \"[Railway] DIAG: globals table has \$cnt rows\n\";
-    if (\$cnt > 0) {
-        foreach (\$p->query('SELECT gl_name, gl_value FROM globals LIMIT 5') as \$r)
-            echo \"[Railway] DIAG:   {\$r['gl_name']} = {\$r['gl_value']}\n\";
-    }
-} catch (Exception \$e) {
-    echo '[Railway] DIAG: DB query failed: ' . \$e->getMessage() . \"\n\";
+# ── Populate globals table if empty ──────────────────────────────────
+# The globals table has the structure but 0 rows — auto_configure
+# created tables but never seeded the defaults. Replicate what
+# Installer.class.php::insert_globals() does: read GLOBALS_METADATA
+# from library/globals.inc.php and INSERT default values.
+cat > /tmp/seed-globals.php <<'SEEDEOF'
+<?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+$host  = getenv('MYSQL_HOST');
+$port  = getenv('MYSQL_PORT') ?: '3306';
+$user  = getenv('MYSQL_USER');
+$pass  = getenv('MYSQL_PASS');
+$db    = getenv('MYSQL_DATABASE') ?: 'openemr';
+
+$pdo = new PDO("mysql:host=$host;port=$port;dbname=$db", $user, $pass, [PDO::ATTR_TIMEOUT => 5]);
+$cnt = (int) $pdo->query("SELECT COUNT(*) FROM globals")->fetchColumn();
+echo "[Railway] globals table has $cnt rows\n";
+
+if ($cnt > 0) {
+    echo "[Railway] Globals already populated — skipping seed.\n";
+    exit(0);
 }
-\$gf = file_get_contents('$WEBROOT/interface/globals.php');
-echo '[Railway] DIAG: globals.php patched? ' . (strpos(\$gf, '[Railway] removed') !== false ? 'YES' : 'NO') . \"\n\";
-echo '[Railway] DIAG: globals.php owner=' . posix_getpwuid(fileowner('$WEBROOT/interface/globals.php'))['name'] . \"\n\";
-echo '[Railway] DIAG: sqlconf.php owner=' . posix_getpwuid(fileowner('$WEBROOT/sites/default/sqlconf.php'))['name'] . \"\n\";
-" 2>&1
+
+echo "[Railway] Seeding globals table from defaults...\n";
+
+// Minimal stubs so globals.inc.php can be parsed
+if (!function_exists('xl')) { function xl($s) { return $s; } }
+$GLOBALS['temp_skip_translations'] = true;
+$skipGlobalEvent = true;
+
+// globals.inc.php needs some vars
+$GLOBALS['srcdir'] = '/var/www/localhost/htdocs/openemr/library';
+$GLOBALS['fileroot'] = '/var/www/localhost/htdocs/openemr';
+$GLOBALS['webroot'] = '';
+
+chdir('/var/www/localhost/htdocs/openemr');
+require '/var/www/localhost/htdocs/openemr/library/globals.inc.php';
+
+if (empty($GLOBALS_METADATA)) {
+    echo "[Railway] ERROR: GLOBALS_METADATA not found — cannot seed.\n";
+    exit(1);
+}
+
+$stmt = $pdo->prepare("INSERT INTO globals (gl_name, gl_index, gl_value) VALUES (?, '0', ?)");
+$inserted = 0;
+foreach ($GLOBALS_METADATA as $grpname => $grparr) {
+    foreach ($grparr as $fldid => $fldarr) {
+        list($fldname, $fldtype, $flddef, $flddesc) = $fldarr;
+        if (is_array($fldtype) || substr($fldtype, 0, 2) !== 'm_') {
+            $stmt->execute([$fldid, $flddef]);
+            $inserted++;
+        }
+    }
+}
+
+echo "[Railway] Seeded $inserted globals into database.\n";
+SEEDEOF
+php /tmp/seed-globals.php 2>&1
+rm -f /tmp/seed-globals.php
 
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
