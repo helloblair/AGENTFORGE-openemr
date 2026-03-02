@@ -111,33 +111,47 @@ if [ -n "$MYSQL_HOST" ] && [ -n "$MYSQL_USER" ]; then
     fi
 fi
 
-# Start OpenEMR entrypoint in background so we can run diagnostics after
-./openemr.sh &
-OPENEMR_PID=$!
+# Run diagnostic in background — waits for Apache, then tests
+(
+    echo "[Railway] Waiting for Apache to be ready..."
+    # Poll until port 80 or 443 is listening (max 60 seconds)
+    for i in $(seq 1 60); do
+        if wget -q --spider http://localhost:80/ 2>/dev/null || \
+           wget -q --spider --no-check-certificate https://localhost:443/ 2>/dev/null; then
+            echo "[Railway] Apache responded after ${i}s"
+            break
+        fi
+        sleep 1
+    done
 
-# Wait for Apache to be ready
-sleep 12
+    echo "[Railway] === INTERNAL DIAGNOSTIC ==="
 
-echo "[Railway] === INTERNAL DIAGNOSTIC ==="
-echo "[Railway] Apache config test:"
-httpd -t 2>&1 || true
+    echo "[Railway] Listening ports:"
+    netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || true
 
-echo "[Railway] Listening ports:"
-netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || true
+    echo "[Railway] Testing localhost:80/railway-health.php ..."
+    wget -q -O - --server-response http://localhost:80/railway-health.php 2>&1 | head -40 || true
 
-echo "[Railway] Testing localhost:80 ..."
-wget -q -O - --server-response http://localhost:80/railway-health.php 2>&1 | head -30 || true
+    echo "[Railway] Testing localhost:443/railway-health.php ..."
+    wget -q -O - --no-check-certificate --server-response https://localhost:443/railway-health.php 2>&1 | head -40 || true
 
-echo "[Railway] Testing localhost:443 ..."
-wget -q -O - --no-check-certificate --server-response https://localhost:443/railway-health.php 2>&1 | head -30 || true
+    echo "[Railway] Testing localhost:80/interface/login/login.php ..."
+    wget -q -O /dev/null --server-response "http://localhost:80/interface/login/login.php?site=default" 2>&1 | head -20 || true
 
-echo "[Railway] Apache error log (last 20 lines):"
-tail -20 /var/log/apache2/error.log 2>/dev/null || \
-tail -20 /var/log/httpd/error_log 2>/dev/null || \
-tail -20 /var/log/apache2/error_log 2>/dev/null || \
-echo "(no error log found)"
+    echo "[Railway] Apache error log:"
+    for logfile in /var/log/apache2/error.log /var/log/httpd/error_log /var/log/apache2/error_log; do
+        if [ -f "$logfile" ]; then
+            echo "[Railway] Found: $logfile"
+            tail -30 "$logfile"
+            break
+        fi
+    done
+    # Also check stderr log
+    echo "[Railway] PHP errors (stderr):"
+    tail -20 /tmp/php-error.log 2>/dev/null || echo "(none)"
 
-echo "[Railway] === END DIAGNOSTIC ==="
+    echo "[Railway] === END DIAGNOSTIC ==="
+) &
 
-# Keep container alive
-wait $OPENEMR_PID
+# Hand off to the original OpenEMR entrypoint (PID 1)
+exec ./openemr.sh
