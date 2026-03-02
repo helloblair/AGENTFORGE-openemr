@@ -122,5 +122,39 @@ if [ -f "$PFBS" ]; then
     echo "[Railway] Patched PatientFlowBoardEventsSubscriber.php (drug_screen)"
 fi
 
+# globals.php: make module init non-fatal (don't die on \Throwable)
+# The try/catch at ~line 764 calls http_response_code(500) + die() on ANY
+# error during module loading. On PHP 8.2 many undefined-global warnings
+# become errors that kill every page load. Log and continue instead.
+php <<'EOFPHP'
+$file = '/var/www/localhost/htdocs/openemr/interface/globals.php';
+$content = file_get_contents($file);
+
+$old = <<<'PHP'
+    } catch (\Throwable $ex) {
+        http_response_code(500);
+        $logger->error($ex->getMessage(), ['exception' => $ex]);
+        die();
+    }
+PHP;
+
+$new = <<<'PHP'
+    } catch (\Throwable $ex) {
+        error_log("[Railway] Module init error (non-fatal): " . $ex->getMessage() . " in " . $ex->getFile() . ":" . $ex->getLine());
+        if (isset($logger)) {
+            $logger->error($ex->getMessage(), ['exception' => $ex]);
+        }
+    }
+PHP;
+
+if (strpos($content, $old) !== false) {
+    $content = str_replace($old, $new, $content);
+    file_put_contents($file, $content);
+    echo "[Railway] Patched globals.php — module init errors are now non-fatal\n";
+} else {
+    echo "[Railway] WARNING: globals.php patch target not found (already patched or file changed)\n";
+}
+EOFPHP
+
 # Hand off to the original OpenEMR entrypoint (PID 1)
 exec ./openemr.sh
