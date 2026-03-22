@@ -15,25 +15,34 @@ Open http://localhost:3000 in your browser.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_AGENT_API_URL` | URL of the agent FastAPI backend | `http://localhost:8400` |
+| `NEXT_PUBLIC_AGENT_API_URL` | URL of the agent FastAPI backend | `http://localhost:8080` |
 
-## Deploy to Vercel
+## Deploy to Vultr VPS (Production)
 
-1. Connect your GitHub repository to [Vercel](https://vercel.com).
-2. Set the **Root Directory** to `agent/frontend-next`.
-3. Add the environment variable `NEXT_PUBLIC_AGENT_API_URL` pointing to your production agent API.
-4. Deploy. Vercel auto-detects the Next.js framework via `vercel.json`.
+The frontend runs as part of the full-stack Docker Compose setup. From the repo root:
 
-## Deploy with Docker (Fly.io / Railway)
+```bash
+# First time:
+cp .env.production.example .env.production
+# Edit .env.production — set DOMAIN, API keys, passwords
 
-Build and run the container:
+# Build and start all services:
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+```
+
+The `NEXT_PUBLIC_AGENT_API_URL` is passed as a Docker build arg from `docker-compose.prod.yml` and baked into the Next.js static output at build time.
+
+Nginx routes `https://YOUR_IP/` to the frontend and `https://YOUR_IP/api/` to the agent.
+
+## Deploy with Docker (Standalone)
+
+Build and run the container independently:
 
 ```bash
 cd agent/frontend-next
-docker build -t agent-frontend .
-docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_AGENT_API_URL=https://your-agent-api.example.com \
-  agent-frontend
+docker build -t agent-frontend \
+  --build-arg NEXT_PUBLIC_AGENT_API_URL=https://your-agent-api.example.com .
+docker run -p 3000:3000 agent-frontend
 ```
 
 The Dockerfile uses a multi-stage build with `output: "standalone"` for a minimal production image.

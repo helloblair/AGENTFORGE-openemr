@@ -8,7 +8,7 @@ AI-powered clinical decision support for OpenEMR.
 - **Styling:** Tailwind CSS v4
 - **Rendering:** React Markdown + remark-gfm
 - **Notifications:** Sonner
-- **Deployment:** Vercel
+- **Deployment:** Docker Compose (Vultr VPS)
 
 ## Getting Started
 
@@ -29,29 +29,34 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Architecture
 
 ```
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│   Vercel    │       │   Fly.io    │       │   Railway   │
-│  Next.js    │──────▶│   FastAPI   │──────▶│   OpenEMR   │
-│  Frontend   │  API  │   Agent     │ FHIR/ │   Backend   │
-│             │       │             │ REST  │             │
-└─────────────┘       └─────────────┘       └─────────────┘
+┌──────────────────── Vultr VPS ────────────────────────┐
+│                                                       │
+│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐ │
+│  │ Next.js  │    │ FastAPI  │    │ OpenEMR + MariaDB│ │
+│  │ Frontend │───▶│ Agent    │───▶│ Backend          │ │
+│  │ :3000    │API │ :8080    │FHIR│ :80              │ │
+│  └──────────┘    └──────────┘    └──────────────────┘ │
+│                                                       │
+│  Nginx reverse proxy (:443 / :8443)                   │
+└───────────────────────────────────────────────────────┘
 ```
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_AGENT_API_URL` | Yes | FastAPI backend URL (e.g. `https://openemr-agent-api.fly.dev`) |
+| `NEXT_PUBLIC_AGENT_API_URL` | Yes | FastAPI backend URL (e.g. `https://YOUR_VPS_IP/api`) |
 
 ## Deployment
 
-| Service | Platform | Details |
-|---------|----------|---------|
-| Frontend | Vercel | Auto-deploys on push. Root directory: `agent/frontend-next` |
-| Backend | Fly.io | `fly deploy` from `/agent/` |
-| OpenEMR | Railway | Existing deployment, unchanged |
+All services run on a single Vultr VPS via Docker Compose:
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions including Docker builds.
+```bash
+# From repo root:
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Folder Structure
 
