@@ -50,7 +50,7 @@ Assumes: 2 queries/user/day, single-turn average, Claude Sonnet 4 pricing,
   $15/M = $0.005 → **$0.011**
 - GPT-4o-mini verification: ~300 input × $0.15/M + ~50 output × $0.60/M
   → **$0.00008** (negligible)
-- Infrastructure (FastAPI + Streamlit on Railway): ~$5–20/month fixed
+- Infrastructure (Vultr VPS snapshot approach): ~$1.50/month idle, ~$24/month when running
 - **Total per query: ~$0.012–0.015**
 
 **Multi-step chain cost (3-tool queries):** ~2–3× single-turn cost due to
