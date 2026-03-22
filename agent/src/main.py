@@ -1,5 +1,6 @@
 """FastAPI application entry point for the OpenEMR AI agent."""
 
+import os
 import uuid
 
 import httpx
@@ -13,15 +14,16 @@ from src.observability.tracing import log_feedback
 
 app = FastAPI(title="OpenEMR Agent", version="0.1.0")
 
+_cors_extra = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+_cors_origins = [
+    "http://localhost:3000",
+    "http://localhost:8300",
+    "https://localhost:9300",
+] + [o.strip() for o in _cors_extra if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://veris-teal.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:8300",
-        "https://localhost:9300",
-        "https://openemr-production-7df2.up.railway.app",
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
