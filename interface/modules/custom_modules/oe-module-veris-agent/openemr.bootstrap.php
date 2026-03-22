@@ -75,7 +75,7 @@ function oe_module_veris_agent_render_widget()
     $authUser = $_SESSION['authUser'] ?? '';
 
     // Veris frontend URL
-    $verisUrl = $GLOBALS['veris_agent_url'] ?? 'https://veris-teal.vercel.app';
+    $verisUrl = $GLOBALS['veris_agent_url'] ?? 'http://localhost:3000';
 
     $iframeParams = http_build_query([
         'embedded' => 'true',

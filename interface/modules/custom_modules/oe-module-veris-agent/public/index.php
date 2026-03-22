@@ -23,7 +23,7 @@ $encounter = $_SESSION['encounter'] ?? '';
 $authUser = $_SESSION['authUser'] ?? '';
 
 // Veris frontend URL — override via Admin > Globals > veris_agent_url
-$verisUrl = $GLOBALS['veris_agent_url'] ?? 'https://veris-teal.vercel.app';
+$verisUrl = $GLOBALS['veris_agent_url'] ?? 'http://localhost:3000';
 
 // Build iframe URL with EHR context query params
 $iframeParams = http_build_query([
