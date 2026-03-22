@@ -1355,8 +1355,8 @@ async def seed(dry_run: bool = False, skip_patients: bool = False) -> None:
         print("  Or via Docker:")
         print("    docker exec -i <container> mysql -u root --password=root openemr < seed_transplant_labs.sql")
         print()
-        print("  Or via Railway:")
-        print("    railway run mysql -u root -p openemr < seed_transplant_labs.sql")
+        print("  Or via production Docker Compose:")
+        print("    docker compose -f docker-compose.prod.yml exec -T mariadb mysql -u root -p$MYSQL_ROOT_PASSWORD openemr < seed_transplant_labs.sql")
         print()
 
     # ── Summary ─────────────────────────────────────────────────────────

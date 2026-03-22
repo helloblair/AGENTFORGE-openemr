@@ -1,21 +1,20 @@
 # Custom OpenEMR image with Veris Agent module baked in.
-# Used by Railway to deploy production OpenEMR with the floating widget.
 #
 # Build: docker build -f Dockerfile.openemr -t openemr-veris .
 # Run:   docker run -p 8300:80 -e MYSQL_HOST=... openemr-veris
+#
+# Used by docker-compose.prod.yml for production deployment on Vultr.
 
 FROM openemr/openemr:7.0.2
 
-# Force Railway to proxy to port 80 (not 443).
-# The base image exposes both 80 and 443; ENV PORT is what Railway reads.
 ENV PORT=80
 EXPOSE 80
 
-# Veris Agent module
+# Veris Agent module — floating chat widget for the OpenEMR UI
 COPY interface/modules/custom_modules/oe-module-veris-agent/ \
      /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-veris-agent/
 
-# Railway entrypoint — writes sqlconf.php from env vars so the image
+# Production entrypoint — writes sqlconf.php from env vars so the image
 # skips auto_configure.php when connecting to an existing database.
 COPY docker/railway-entrypoint.sh /var/www/localhost/htdocs/openemr/railway-entrypoint.sh
 RUN chmod +x /var/www/localhost/htdocs/openemr/railway-entrypoint.sh
