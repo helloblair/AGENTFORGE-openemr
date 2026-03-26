@@ -9,7 +9,6 @@ import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
 import ChatWindow from "@/components/ChatWindow";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import ClinicalDisclaimer from "@/components/ClinicalDisclaimer";
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -168,12 +167,6 @@ function HomeContent() {
             ehrContext={ehrContext}
           />
 
-          {/* Clinical disclaimer — hidden when embedded */}
-          {!isEmbedded && (
-            <footer>
-              <ClinicalDisclaimer />
-            </footer>
-          )}
         </main>
       </div>
     </div>

@@ -29,8 +29,8 @@ from langgraph.prebuilt import create_react_agent
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.observability.tracing import create_langfuse_handler, init_tracing
-from src.tools import allergy_check, drug_interaction_check, insurance_coverage, lab_results, medication_list, patient_lookup, problem_list, provider_lookup, transplant_criteria_lookup, transplant_screening
-from src.verification.confidence import compute_confidence, format_confidence_message
+from src.tools import allergy_check, donor_viability, drug_interaction_check, insurance_coverage, lab_results, medication_list, patient_lookup, problem_list, provider_lookup, transplant_criteria_lookup, transplant_screening
+from src.verification.confidence import compute_confidence
 from src.verification.hallucination import check_hallucination
 from src.verification.drug_safety import (
     CLINICAL_DATA_DISCLAIMER,
@@ -90,6 +90,11 @@ AVAILABLE TOOLS:
 - transplant_screening: Run organ transplant candidacy screening — computes clinical scores \
 (eGFR, MELD, NYHA/EF, FEV1), screens contraindications, and generates a candidacy report \
 (requires patient UUID and organ type: kidney, heart, lung, or liver)
+- donor_viability: Evaluate whether a patient is a viable organ donor (living or deceased). \
+Computes organ-specific donor scores: living kidney (eGFR), living liver (LFT panel), \
+deceased kidney (KDPI), deceased liver (DRI), deceased heart (EF), deceased lung (PaO2/FiO2). \
+Living donation only available for kidney and liver. \
+(requires patient UUID, organ type, and donor_type: "living" or "deceased")
 
 For multi-step queries, chain tools logically. Example:
 "Check if John Smith is allergic to any of his current medications"
@@ -104,16 +109,29 @@ Transplant screening example:
 → 1. patient_lookup("John Smith") → get UUID
 → 2. transplant_screening(UUID, organ_type="kidney") → full candidacy report
 
-SAFETY RULE: Transplant screening reports are clinical decision support only. \
-Always include the screening disclaimer and never present results as a definitive \
-transplant listing decision.
+Donor viability example:
+"Is Maria Garcia viable as a living kidney donor?"
+→ 1. patient_lookup("Maria Garcia") → get UUID
+→ 2. donor_viability(UUID, organ_type="kidney", donor_type="living") → full donor report
 
-Always cite which tool provided each piece of information.\
+"Evaluate deceased donor Robert Chen for heart donation"
+→ 1. patient_lookup("Robert Chen") → get UUID
+→ 2. donor_viability(UUID, organ_type="heart", donor_type="deceased") → full donor report
+
+SAFETY RULE: Transplant screening and donor viability reports are clinical decision \
+support only. Always include the screening disclaimer and never present results as a \
+definitive transplant listing or donor eligibility decision.
+
+FORMATTING RULES:
+- Always **bold** patient names in your responses
+- Always include the patient's date of birth in parentheses after their name, \
+e.g. **Maria Garcia** (DOB: 04/12/1968)
+- Always cite which tool provided each piece of information\
 """
 
 # ── Inner agent (pre-built ReAct graph) ─────────────────────────────────────
 
-_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, provider_lookup, insurance_coverage, drug_interaction_check, lab_results, transplant_criteria_lookup, transplant_screening]
+_TOOLS = [patient_lookup, allergy_check, medication_list, problem_list, provider_lookup, insurance_coverage, drug_interaction_check, lab_results, transplant_criteria_lookup, transplant_screening, donor_viability]
 
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",
@@ -353,10 +371,7 @@ async def run_agent(
         hallucination_result["latency_ms"],
     )
 
-    # Append confidence display to the response.
-    response_text += format_confidence_message(confidence_score)
-
-    # Append hallucination warning (if any) after confidence display.
+    # Append hallucination warning (if any) to the response.
     if hallucination_result["warning"]:
         response_text += hallucination_result["warning"]
 

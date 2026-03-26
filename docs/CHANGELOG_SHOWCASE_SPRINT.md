@@ -1025,3 +1025,53 @@ The previous three-platform setup (Railway for OpenEMR, Fly.io for agent, Vercel
 
 **Impact:**
 Hosting cost reduced from ~$10-25/month to ~$1.50/month idle. Zero dependency on Railway, Fly.io, or Vercel. Single `docker compose up` command deploys the entire stack. All functionality preserved including transplant screening, 9 agent tools, 4 verification systems, and Langfuse observability.
+
+---
+
+### UI Polish: Emoji Feedback Icons + Confidence Bar Cleanup
+**Timestamp:** 2026-03-26
+**Files Modified:** agent/frontend-next/components/FeedbackButtons.tsx, agent/frontend-next/components/ConfidenceBar.tsx
+
+**What Changed:**
+Replaced SVG thumbs up/down icons in FeedbackButtons with native emoji (👍/👎). Removed the redundant "Confidence: X.XX" text label from ConfidenceBar, keeping only the animated progress bar.
+
+**Engineering Rationale:**
+Emoji icons are universally recognizable, render consistently across platforms, and eliminate ~30 lines of SVG markup. The confidence text was duplicating information already conveyed by the bar's fill level and color coding, adding visual noise without informational value.
+
+**Impact:**
+Cleaner message bubble UI with less visual clutter. Simpler component markup in both files.
+
+---
+
+### Fix Duplicate Confidence Display + Tool Name Pills in Messages
+**Timestamp:** 2026-03-26
+**Files Modified:** agent/src/agent/graph.py, agent/frontend-next/components/ConfidenceBar.tsx, agent/frontend-next/components/MessageBubble.tsx
+
+**What Changed:**
+1. Removed `format_confidence_message()` call from graph.py that was appending confidence text into the response string — this was the duplicate that appeared *before* the ConfidenceBar UI component. Restored the "Confidence: X.XX" label inside ConfidenceBar.tsx so the single source of truth is the frontend component (label + animated bar).
+2. Added tool name pill rendering to MessageBubble. When the agent's markdown response contains an inline code span matching a known tool name (e.g. `patient_lookup`), it renders as a colored pill with border/background matching the tool's color from the ToolCallsPanel palette (primary blue for patient/provider, emerald for medication/insurance, red for allergy/transplant, amber for problems/interactions).
+
+**Engineering Rationale:**
+Confidence was being displayed twice: once as markdown text injected by the backend, once as a React component in the frontend. Removing the backend injection is cleaner — the frontend already receives `confidence_score` as structured data and renders it with the animated bar. Tool name pills provide visual consistency between the ToolCallsPanel accordion and inline tool references in the response text, making it easier to scan which tools contributed to the answer.
+
+**Impact:**
+No more duplicate confidence display. Tool names in response text now render as visually distinct, color-coded pills matching the existing UI palette.
+
+---
+
+### Message Card Redesign + Disclaimer/Feedback Polish
+**Timestamp:** 2026-03-26
+**Files Modified:** agent/frontend-next/components/MessageBubble.tsx, agent/frontend-next/components/FeedbackButtons.tsx
+
+**What Changed:**
+1. Assistant responses now render inside a white rounded card with border and subtle shadow, giving each response a clean, distinct container that adapts to content size.
+2. Replaced the collapsible ToolCallsPanel dropdown with an inline "Tools called:" row that lists tool pills horizontally — simpler for chained multi-tool queries.
+3. Disclaimers (clinical data, clinical support, hallucination warnings) are now split out of the markdown body and rendered as small 10px muted text below the card, above the feedback buttons.
+4. FeedbackButtons now shows a contextual label: "Was this helpful?" before voting, "Thanks for your feedback!" after.
+5. Added markdown table styling (border-collapse, header styling, cell padding) for cleaner data presentation.
+
+**Engineering Rationale:**
+The previous flat layout made it hard to distinguish where the response ended and metadata began. The card container creates a clear visual hierarchy: card (response + tools + confidence) → disclaimers → feedback. Removing the collapsible accordion reduces interaction friction — when tools are chained (2-3 tool calls), a dropdown adds unnecessary clicks. Disclaimers were rendering as full-weight markdown mixed into the response body; splitting them out and rendering at reduced size keeps them present (legally important) without competing with the clinical data.
+
+**Impact:**
+Professional card-based message layout. Tool chain visibility at a glance. Disclaimers demoted to footnote-style without removal. Feedback prompt improves response rate by making the ask explicit.

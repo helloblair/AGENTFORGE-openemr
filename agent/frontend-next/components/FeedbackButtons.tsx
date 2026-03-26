@@ -21,7 +21,11 @@ export default function FeedbackButtons({
   }
 
   return (
-    <div className="mt-2 flex items-center gap-1">
+    <div className="mt-2 flex items-center gap-1.5 px-1">
+      <span className="text-[10px] font-bold uppercase text-text-muted">
+        {voted ? "Thanks for your feedback!" : "Was this helpful?"}
+      </span>
+
       {/* Thumbs up */}
       <button
         type="button"
@@ -37,20 +41,7 @@ export default function FeedbackButtons({
               : "text-text-muted hover:text-accent"
         }`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill={currentFeedback === "up" ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="h-5 w-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M7 11V4a2 2 0 0 1 2-2h.5a.5.5 0 0 1 .5.5V6l2-1 2.5 4H11v5a2 2 0 0 1-2 2H7.5A1.5 1.5 0 0 1 6 15.5V11ZM4 11H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1Z"
-          />
-        </svg>
+        <span className="text-base leading-none">👍</span>
       </button>
 
       {/* Thumbs down */}
@@ -68,20 +59,7 @@ export default function FeedbackButtons({
               : "text-text-muted hover:text-error"
         }`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill={currentFeedback === "down" ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="h-5 w-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M13 9v7a2 2 0 0 1-2 2h-.5a.5.5 0 0 1-.5-.5V14l-2 1-2.5-4H9V6a2 2 0 0 1 2-2h1.5A1.5 1.5 0 0 1 14 5.5V9ZM16 9h1a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1Z"
-          />
-        </svg>
+        <span className="text-base leading-none">👎</span>
       </button>
     </div>
   );

@@ -419,7 +419,7 @@ All 7 tools verified end-to-end through the agent graph:
 **Dependencies:** None (React only)
 **Exposes:** `FeedbackButtons` component. Props: `traceId: string`, `currentFeedback: 'up' | 'down' | null`, `onFeedback: (traceId: string, score: 'up' | 'down') => void`
 **Status:** working
-**Notes:** Outline SVG icons (stroke, no fill) in neutral state. On vote: selected button fills with color (emerald-500 for up, red-500 for down), unselected button fades (neutral-300/600). Both buttons disabled after voting — prevents double-submission. Aria labels: "Helpful response" / "Unhelpful response". Optimistic UI — fills immediately without waiting for API. Compact `mt-2` spacing sits below ConfidenceBar in the message bubble.
+**Notes:** Uses emoji icons (👍/👎) instead of SVG. Both buttons disabled after voting — prevents double-submission. Aria labels: "Helpful response" / "Unhelpful response". Optimistic UI — fills immediately without waiting for API. Compact `mt-2` spacing sits below ConfidenceBar in the message bubble.
 
 ## Next.js Frontend — CopyButton Component (added 2026-02-28)
 
@@ -446,7 +446,7 @@ All 7 tools verified end-to-end through the agent graph:
 **Dependencies:** React (useState, useEffect)
 **Exposes:** `ConfidenceBar` component. Props: `score: number`
 **Status:** working
-**Notes:** Color thresholds match `verification/confidence.py`: green (`bg-emerald-500`) ≥0.8, amber (`bg-amber-500`) 0.6–0.79, red (`bg-red-500`) <0.6. Bar animates from 0% to target width over 500ms ease-out on mount via `requestAnimationFrame` → `setMounted(true)` pattern. Label shows exact score ("Confidence: 0.95").
+**Notes:** Color thresholds match `verification/confidence.py`: green (`bg-emerald-500`) ≥0.8, amber (`bg-amber-500`) 0.6–0.79, red (`bg-red-500`) <0.6. Bar animates from 0% to target width over 500ms ease-out on mount via `requestAnimationFrame` → `setMounted(true)` pattern. Label shows exact score ("Confidence: 0.95"). Backend no longer injects confidence text into the response string — the ConfidenceBar component is the single display source.
 
 ## Next.js Frontend — EscalationWarning Component (added 2026-02-28)
 

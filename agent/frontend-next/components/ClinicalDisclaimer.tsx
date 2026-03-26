@@ -1,11 +1,26 @@
-export default function ClinicalDisclaimer() {
+interface ClinicalDisclaimerProps {
+  disclaimers: string[];
+}
+
+export default function ClinicalDisclaimer({ disclaimers }: ClinicalDisclaimerProps) {
+  if (disclaimers.length === 0) return null;
+
   return (
-    <div className="border-t border-border bg-surface px-3 py-1.5 sm:px-4 sm:py-2">
-      <p className="text-center text-[10px] leading-tight text-text-muted sm:text-xs sm:leading-normal">
-        This tool provides clinical decision support only. Always verify
-        information with qualified healthcare professionals before making
-        clinical decisions. Not a substitute for professional medical judgment.
+    <div className="mt-2 rounded-lg border border-border/40 bg-surface-secondary/60 px-3 py-2">
+      <p className="mb-1 font-mono text-[9px] font-bold uppercase tracking-wider text-text-muted">
+        Disclaimer:
       </p>
+      <p className="mb-1 font-mono text-[10px] font-bold uppercase leading-snug text-text-muted">
+        This is not medical advice.
+      </p>
+      <ul className="list-disc pl-4 space-y-0.5">
+        <li className="font-mono text-[10px] font-bold uppercase leading-snug text-text-muted">
+          This information is for clinical support only.
+        </li>
+        <li className="font-mono text-[10px] font-bold uppercase leading-snug text-text-muted">
+          Please verify with your healthcare provider before making any clinical decisions.
+        </li>
+      </ul>
     </div>
   );
 }

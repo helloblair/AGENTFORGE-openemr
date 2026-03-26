@@ -25,7 +25,7 @@ export default function ConfidenceBar({ score }: ConfidenceBarProps) {
   return (
     <div className="mt-3 flex items-center gap-2">
       <span className="shrink-0 text-[12px] font-medium text-text-secondary">
-        Confidence: {score.toFixed(2)}
+        Confidence: {pct}%
       </span>
       <div
         role="meter"

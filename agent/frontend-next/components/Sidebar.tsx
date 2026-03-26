@@ -5,11 +5,12 @@ import { toast } from "sonner";
 import { checkHealth } from "@/lib/api";
 
 const EXAMPLE_QUERIES = [
-  "Look up patient John Smith",
-  "What medications is patient Jane Doe taking?",
+  "Look up patient Maria Garcia",
+  "What medications is patient Marcus Johnson taking?",
   "Check for drug interactions between lisinopril and potassium",
-  "Who is the primary care provider for patient ID xyz?",
-  "What allergies does patient Sarah Johnson have?",
+  "Is Clara Reeves eligible for a kidney transplant?",
+  "Is Maria Garcia viable as a living kidney donor?",
+  "Evaluate Robert Chen as a deceased heart donor",
 ];
 
 interface SidebarProps {
@@ -67,8 +68,8 @@ export default function Sidebar({
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-border bg-surface-secondary">
       {/* Sidebar header */}
       <div className="border-b border-border px-5 py-5">
-        <h2 className="text-xl font-bold tracking-tight text-text-primary">
-          <span className="text-accent">&#10003;</span> Veris
+        <h2 className="text-xl font-bold tracking-tight text-text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
+          <span className="text-accent drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">&#10003;</span> Veris
         </h2>
         <p className="mt-0.5 text-xs text-text-secondary">
           Clinical Intelligence
@@ -158,7 +159,7 @@ export default function Sidebar({
 
         {/* Footer */}
         <p className="text-[10px] text-text-muted">
-          Powered by OpenEMR + Claude
+          Powered by OpenEMR + Claude 4 Sonnet
         </p>
       </div>
     </aside>

@@ -10,9 +10,11 @@ from src.tools.problem_list import problem_list
 from src.tools.provider_lookup import provider_lookup
 from src.tools.transplant_criteria_lookup import transplant_criteria_lookup
 from src.tools.transplant_screening import transplant_screening
+from src.tools.donor_viability import donor_viability
 
 __all__ = [
     "allergy_check",
+    "donor_viability",
     "drug_interaction_check",
     "insurance_coverage",
     "lab_results",

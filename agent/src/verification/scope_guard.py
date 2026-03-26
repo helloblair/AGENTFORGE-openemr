@@ -70,6 +70,14 @@ CLINICAL_SUPPORT_KEYWORDS: list[str] = [
     "lab values",
     "ejection fraction",
     "contraindication",
+    "donor",
+    "donation",
+    "viable",
+    "viability",
+    "kdpi",
+    "dri",
+    "living donor",
+    "deceased donor",
 ]
 
 MEDICAL_KNOWLEDGE_KEYWORDS: list[str] = [
