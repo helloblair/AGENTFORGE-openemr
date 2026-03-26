@@ -6,8 +6,9 @@
 #   edge_case    — unusual inputs that exercise error handling (15)
 #   adversarial  — requests the scope guard must block (10)
 #   multi_step   — queries requiring multiple tool calls (15)
+#   donor        — donor viability evaluation test cases (12)
 #
-# Total: 67 test cases
+# Total: 79 test cases
 
 test_cases:
   # ── Happy path (21) ──────────────────────────────────────────────────────
@@ -777,3 +778,153 @@ test_cases:
       - "heart"
     should_block: false
     pass_criteria: "Multi-organ screening: kidney (eGFR 18, threshold met) and heart (EF 32%, NYHA III) for same patient across tool calls"
+
+  # ── donor_viability tool — happy path (4) ─────────────────────────────────
+
+  - id: "DN-01"
+    category: donor
+    input: "Is Priya Sharma viable as a living kidney donor?"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Priya"
+      - "Sharma"
+      - "kidney"
+    should_block: false
+    pass_criteria: "Agent chains patient_lookup → donor_viability with donor_type=living, organ_type=kidney"
+
+  - id: "DN-02"
+    category: donor
+    input: "Evaluate Tomas Herrera as a living liver donor"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Herrera"
+      - "liver"
+    should_block: false
+    pass_criteria: "Agent chains patient_lookup → donor_viability with donor_type=living, organ_type=liver"
+
+  - id: "DN-03"
+    category: donor
+    input: "Assess Gerald Franklin as a deceased kidney donor"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Franklin"
+      - "kidney"
+      - "KDPI"
+    should_block: false
+    pass_criteria: "Agent chains patient_lookup → donor_viability with donor_type=deceased, computes KDPI"
+
+  - id: "DN-04"
+    category: donor
+    input: "Evaluate Evelyn Matsuda as a deceased heart donor"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Matsuda"
+      - "heart"
+    should_block: false
+    pass_criteria: "Agent chains patient_lookup → donor_viability with donor_type=deceased, organ_type=heart"
+
+  # ── donor_viability tool — edge cases (4) ─────────────────────────────────
+
+  - id: "DN-05"
+    category: donor
+    input: "Is Maria Garcia viable as a living heart donor?"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "kidney"
+      - "liver"
+    should_block: false
+    pass_criteria: "Agent should explain that living donation is only available for kidney and liver"
+
+  - id: "DN-06"
+    category: donor
+    input: "Evaluate donor viability for patient UUID 00000000-0000-0000-0000-000000000000"
+    expected_tools:
+      - donor_viability
+    expected_output_contains:
+      - "error"
+    should_block: false
+    pass_criteria: "Agent handles non-existent patient UUID gracefully"
+
+  - id: "DN-07"
+    category: donor
+    input: "Check if patient UUID 95f2f211-3580-4b58-9a15-2d9b29f49c72 is viable as a pancreas donor"
+    expected_tools:
+      - donor_viability
+    expected_output_contains:
+      - "invalid"
+    should_block: false
+    pass_criteria: "Agent handles unsupported organ type for donor viability"
+
+  - id: "DN-08"
+    category: donor
+    input: "Is Priya Sharma viable as a deceased kidney donor?"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Sharma"
+      - "kidney"
+    should_block: false
+    pass_criteria: "Agent evaluates living patient as deceased donor — should compute KDPI with available data"
+
+  # ── donor_viability tool — multi-step chains (4) ──────────────────────────
+
+  - id: "DN-09"
+    category: donor
+    input: "Find Gerald Franklin and assess him for both kidney and liver deceased donation"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "kidney"
+      - "liver"
+    should_block: false
+    pass_criteria: "Multi-organ deceased donor evaluation: KDPI for kidney and DRI for liver"
+
+  - id: "DN-10"
+    category: donor
+    input: "Look up Priya Sharma, check her allergies, and evaluate her as a living kidney donor"
+    expected_tools:
+      - patient_lookup
+      - allergy_check
+      - donor_viability
+    expected_output_contains:
+      - "Sharma"
+      - "kidney"
+    should_block: false
+    pass_criteria: "Chains patient_lookup → allergy_check → donor_viability for comprehensive donor evaluation"
+
+  - id: "DN-11"
+    category: donor
+    input: "Evaluate Evelyn Matsuda as a deceased donor for all possible organs"
+    expected_tools:
+      - patient_lookup
+      - donor_viability
+    expected_output_contains:
+      - "Matsuda"
+    should_block: false
+    pass_criteria: "Agent should evaluate multiple organs (kidney, liver, heart, lung) for deceased donor"
+
+  - id: "DN-12"
+    category: donor
+    input: "Is Clara Reeves a viable kidney transplant candidate AND is Priya Sharma a viable living kidney donor for her?"
+    expected_tools:
+      - patient_lookup
+      - transplant_screening
+      - donor_viability
+    expected_output_contains:
+      - "Reeves"
+      - "Sharma"
+      - "kidney"
+    should_block: false
+    pass_criteria: "Chains recipient screening + donor viability: evaluates both sides of a transplant match"

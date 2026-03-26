@@ -314,6 +314,77 @@ TRANSPLANT_PATIENTS = [
     },
 ]
 
+# ── Donor evaluation demo patients ─────────────────────────────────────────
+# Living donors (healthy, good labs) + deceased donors (cause of death,
+# organ-specific data) for the donor_viability tool.
+
+DONOR_PATIENTS = [
+    # Living kidney donor — healthy 34yo female, great eGFR
+    {
+        "fname": "Priya",
+        "lname": "Sharma",
+        "DOB": "1992-03-14",
+        "sex": "Female",
+        "race": "asian",
+        "ethnicity": "not_hisp_or_latin",
+        "status": "married",
+        "street": "22 Brattle Street",
+        "city": "Cambridge",
+        "state": "MA",
+        "postal_code": "02138",
+        "phone_home": "(617) 555-1201",
+        "email": "psharma@example.com",
+    },
+    # Living liver donor — healthy 41yo male, normal LFTs
+    {
+        "fname": "Tomás",
+        "lname": "Herrera",
+        "DOB": "1985-07-09",
+        "sex": "Male",
+        "race": "white",
+        "ethnicity": "hisp_or_latin",
+        "status": "married",
+        "street": "510 Commonwealth Ave",
+        "city": "Boston",
+        "state": "MA",
+        "postal_code": "02215",
+        "phone_home": "(617) 555-1302",
+        "email": "therrera@example.com",
+    },
+    # Deceased donor — 52yo male, CVA, good organs
+    {
+        "fname": "Gerald",
+        "lname": "Franklin",
+        "DOB": "1974-01-22",
+        "sex": "Male",
+        "race": "black_or_african_american",
+        "ethnicity": "not_hisp_or_latin",
+        "status": "married",
+        "street": "85 Warren Street",
+        "city": "Roxbury",
+        "state": "MA",
+        "postal_code": "02119",
+        "phone_home": "(617) 555-1403",
+        "email": "gfranklin@example.com",
+    },
+    # Deceased donor — 67yo female, anoxia, marginal organs
+    {
+        "fname": "Evelyn",
+        "lname": "Matsuda",
+        "DOB": "1959-11-05",
+        "sex": "Female",
+        "race": "asian",
+        "ethnicity": "not_hisp_or_latin",
+        "status": "widowed",
+        "street": "44 Pearl Street",
+        "city": "Worcester",
+        "state": "MA",
+        "postal_code": "01608",
+        "phone_home": "(508) 555-1504",
+        "email": "ematsuda@example.com",
+    },
+]
+
 # Per-patient clinical profiles keyed by (fname, lname)
 
 ALLERGIES: dict[tuple[str, str], list[dict]] = {
@@ -357,6 +428,13 @@ ALLERGIES: dict[tuple[str, str], list[dict]] = {
     ("Diana", "Patel"): [],  # No drug allergies
     ("Robert", "Chen-Ramirez"): [],  # No drug allergies
     ("Angela", "Torres"): [],  # No drug allergies
+    # ── Donor patients ──
+    ("Priya", "Sharma"): [],  # NKDA — healthy living donor
+    ("Tomás", "Herrera"): [],  # NKDA — healthy living donor
+    ("Gerald", "Franklin"): [],  # Deceased donor
+    ("Evelyn", "Matsuda"): [
+        {"type": "allergy", "title": "Lisinopril", "reaction": "cough", "begdate": "2010-05-20", "diagnosis": "RXCUI:29046"},
+    ],
 }
 
 MEDICAL_PROBLEMS: dict[tuple[str, str], list[dict]] = {
@@ -444,6 +522,26 @@ MEDICAL_PROBLEMS: dict[tuple[str, str], list[dict]] = {
         {"title": "Chronic respiratory failure, unspecified", "begdate": "2023-08-10", "diagnosis": "ICD10:J96.10"},
         {"title": "Nicotine dependence, cigarettes, uncomplicated", "begdate": "2010-01-01", "enddate": "2024-03-01", "diagnosis": "ICD10:F17.210"},
     ],
+    # ── Donor patients ──
+    # Priya Sharma — Living kidney donor, HEALTHY
+    ("Priya", "Sharma"): [
+        {"title": "Seasonal Allergic Rhinitis", "begdate": "2015-04-01", "diagnosis": "ICD10:J30.2"},
+    ],
+    # Tomás Herrera — Living liver donor, HEALTHY
+    ("Tomás", "Herrera"): [
+        {"title": "Mild intermittent asthma", "begdate": "2005-06-01", "diagnosis": "ICD10:J45.20"},
+    ],
+    # Gerald Franklin — Deceased donor, CVA (stroke), good organs
+    ("Gerald", "Franklin"): [
+        {"title": "Essential Hypertension", "begdate": "2010-03-15", "diagnosis": "ICD10:I10"},
+        {"title": "Cerebrovascular accident (stroke)", "begdate": "2026-03-20", "diagnosis": "ICD10:I63.9"},
+    ],
+    # Evelyn Matsuda — Deceased donor, cardiac arrest, marginal organs
+    ("Evelyn", "Matsuda"): [
+        {"title": "Essential Hypertension", "begdate": "2000-06-10", "diagnosis": "ICD10:I10"},
+        {"title": "Type 2 Diabetes Mellitus", "begdate": "2005-09-22", "diagnosis": "ICD10:E11.9"},
+        {"title": "Cardiac arrest, cause unspecified", "begdate": "2026-03-18", "diagnosis": "ICD10:I46.9"},
+    ],
 }
 
 MEDICATIONS: dict[tuple[str, str], list[dict]] = {
@@ -524,6 +622,20 @@ MEDICATIONS: dict[tuple[str, str], list[dict]] = {
         {"title": "Pirfenidone 801mg", "begdate": "2021-04-22", "drug": "Pirfenidone 267 MG Oral Capsule"},
         {"title": "Albuterol Inhaler", "begdate": "2022-06-01", "drug": "Albuterol 0.83 MG/ML Inhalation Solution"},
     ],
+    # ── Donor patients ──
+    ("Priya", "Sharma"): [
+        {"title": "Cetirizine 10mg", "begdate": "2015-04-01", "drug": "Cetirizine Hydrochloride 10 MG Oral Tablet"},
+    ],
+    ("Tomás", "Herrera"): [
+        {"title": "Albuterol Inhaler", "begdate": "2005-06-01", "drug": "Albuterol 0.83 MG/ML Inhalation Solution"},
+    ],
+    ("Gerald", "Franklin"): [
+        {"title": "Amlodipine 5mg", "begdate": "2010-03-15", "drug": "Amlodipine 5 MG Oral Tablet"},
+    ],
+    ("Evelyn", "Matsuda"): [
+        {"title": "Metformin 1000mg", "begdate": "2005-09-22", "drug": "Metformin Hydrochloride 1000 MG Oral Tablet"},
+        {"title": "Losartan 50mg", "begdate": "2010-05-20", "drug": "Losartan Potassium 50 MG Oral Tablet"},
+    ],
 }
 
 # Vitals are added per-encounter; these are the readings for the most recent visit
@@ -544,6 +656,11 @@ VITALS: dict[tuple[str, str], dict] = {
     ("Diana", "Patel"): {"bps": "108", "bpd": "66", "weight": "148", "height": "64", "temperature": "97.8", "pulse": "84", "respiration": "18", "oxygen_saturation": "96"},  # BMI ~25.4
     ("Robert", "Chen-Ramirez"): {"bps": "156", "bpd": "96", "weight": "228", "height": "69", "temperature": "98.2", "pulse": "86", "respiration": "18", "oxygen_saturation": "95"},  # BMI ~33.7
     ("Angela", "Torres"): {"bps": "118", "bpd": "72", "weight": "138", "height": "66", "temperature": "98.0", "pulse": "94", "respiration": "22", "oxygen_saturation": "89"},  # BMI ~22.3, low O2
+    # ── Donor patients ──
+    ("Priya", "Sharma"): {"bps": "112", "bpd": "68", "weight": "130", "height": "64", "temperature": "98.6", "pulse": "64", "respiration": "14", "oxygen_saturation": "99"},  # BMI ~22.3, healthy
+    ("Tomás", "Herrera"): {"bps": "118", "bpd": "74", "weight": "175", "height": "70", "temperature": "98.4", "pulse": "68", "respiration": "14", "oxygen_saturation": "99"},  # BMI ~25.1, healthy
+    ("Gerald", "Franklin"): {"bps": "0", "bpd": "0", "weight": "195", "height": "72", "temperature": "96.5", "pulse": "0", "respiration": "0", "oxygen_saturation": "0"},  # deceased
+    ("Evelyn", "Matsuda"): {"bps": "0", "bpd": "0", "weight": "145", "height": "62", "temperature": "96.2", "pulse": "0", "respiration": "0", "oxygen_saturation": "0"},  # deceased
 }
 
 # Encounter reason for each patient's office visit
@@ -564,6 +681,11 @@ ENCOUNTER_REASONS: dict[tuple[str, str], str] = {
     ("Diana", "Patel"): "Liver transplant workup: cirrhosis management, lab review",
     ("Robert", "Chen-Ramirez"): "Multi-organ evaluation: kidney transplant candidacy, cardiac function review",
     ("Angela", "Torres"): "Pulmonary fibrosis progression, transplant re-evaluation after sobriety milestone",
+    # ── Donor patients ──
+    ("Priya", "Sharma"): "Living kidney donor evaluation: pre-donation screening and labs",
+    ("Tomás", "Herrera"): "Living liver donor evaluation: pre-donation hepatic function panel",
+    ("Gerald", "Franklin"): "Deceased donor organ procurement: brain death after CVA, organ viability assessment",
+    ("Evelyn", "Matsuda"): "Deceased donor organ procurement: cardiac arrest, organ viability assessment",
 }
 
 # ── Practitioners (providers) ───────────────────────────────────────────────
@@ -1134,7 +1256,7 @@ async def seed(dry_run: bool = False, skip_patients: bool = False) -> None:
             print("  STEP 3: Creating patients")
             print("========================================\n")
 
-            all_patients = PATIENTS + TRANSPLANT_PATIENTS
+            all_patients = PATIENTS + TRANSPLANT_PATIENTS + DONOR_PATIENTS
             for p in all_patients:
                 key = (p["fname"], p["lname"])
                 label = f"Patient {p['fname']} {p['lname']}"
@@ -1154,7 +1276,7 @@ async def seed(dry_run: bool = False, skip_patients: bool = False) -> None:
             print("  STEP 3: Looking up existing patients")
             print("========================================\n")
 
-            all_patients = PATIENTS + TRANSPLANT_PATIENTS
+            all_patients = PATIENTS + TRANSPLANT_PATIENTS + DONOR_PATIENTS
             for p in all_patients:
                 key = (p["fname"], p["lname"])
                 try:
