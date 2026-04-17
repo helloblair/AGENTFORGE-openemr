@@ -9,92 +9,92 @@
 SET @po_pid = 14;
 SET @po_eid = 0;
 
-INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UNHEX(REPLACE(UUID(), '-', '')), 0, @po_pid, @po_eid, '2026-02-16 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
+INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UUID_TO_BIN(UUID()), 0, @po_pid, @po_eid, '2026-03-12 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
 SET @order_id = LAST_INSERT_ID();
 
 INSERT INTO procedure_order_code (procedure_order_id, procedure_order_seq, procedure_code, procedure_name, procedure_source) VALUES (@order_id, 1, 'TRANSPLANT_PANEL', 'Transplant Evaluation Panel', '1');
 
-INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @order_id, 1, '2026-02-16 08:00:00', '2026-02-16 08:00:00', 'final', 'reviewed');
+INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UUID_TO_BIN(UUID()), @order_id, 1, '2026-03-12 08:00:00', '2026-03-12 08:00:00', 'final', 'reviewed');
 SET @report_id = LAST_INSERT_ID();
 
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '33914-3', 'eGFR', '2026-02-16 08:00:00', 'mL/min', '12', '>60', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '2160-0', 'Creatinine', '2026-02-16 08:00:00', 'mg/dL', '6.8', '0.6-1.2', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '718-7', 'Hemoglobin', '2026-02-16 08:00:00', 'g/dL', '9.8', '12.0-16.0', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1751-7', 'Albumin', '2026-02-16 08:00:00', 'g/dL', '3.5', '3.4-5.4', '', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '33914-3', 'eGFR', '2026-03-12 08:00:00', 'mL/min', '12', '>60', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '2160-0', 'Creatinine', '2026-03-12 08:00:00', 'mg/dL', '6.8', '0.6-1.2', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '718-7', 'Hemoglobin', '2026-03-12 08:00:00', 'g/dL', '9.8', '12.0-16.0', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1751-7', 'Albumin', '2026-03-12 08:00:00', 'g/dL', '3.5', '3.4-5.4', '', 'final');
 
 
 -- Lab results for Marcus Blake (pid=15)
 SET @po_pid = 15;
 SET @po_eid = 0;
 
-INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UNHEX(REPLACE(UUID(), '-', '')), 0, @po_pid, @po_eid, '2026-02-16 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
+INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UUID_TO_BIN(UUID()), 0, @po_pid, @po_eid, '2026-03-12 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
 SET @order_id = LAST_INSERT_ID();
 
 INSERT INTO procedure_order_code (procedure_order_id, procedure_order_seq, procedure_code, procedure_name, procedure_source) VALUES (@order_id, 1, 'TRANSPLANT_PANEL', 'Transplant Evaluation Panel', '1');
 
-INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @order_id, 1, '2026-02-16 08:00:00', '2026-02-16 08:00:00', 'final', 'reviewed');
+INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UUID_TO_BIN(UUID()), @order_id, 1, '2026-03-12 08:00:00', '2026-03-12 08:00:00', 'final', 'reviewed');
 SET @report_id = LAST_INSERT_ID();
 
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '10230-1', 'Ejection Fraction', '2026-02-16 08:00:00', '%', '30', '55-70', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '30934-4', 'BNP', '2026-02-16 08:00:00', 'pg/mL', '850', '<100', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '718-7', 'Hemoglobin', '2026-02-16 08:00:00', 'g/dL', '13.2', '13.5-17.5', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1751-7', 'Albumin', '2026-02-16 08:00:00', 'g/dL', '3.8', '3.4-5.4', '', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '10230-1', 'Ejection Fraction', '2026-03-12 08:00:00', '%', '30', '55-70', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '30934-4', 'BNP', '2026-03-12 08:00:00', 'pg/mL', '850', '<100', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '718-7', 'Hemoglobin', '2026-03-12 08:00:00', 'g/dL', '13.2', '13.5-17.5', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1751-7', 'Albumin', '2026-03-12 08:00:00', 'g/dL', '3.8', '3.4-5.4', '', 'final');
 
 
 -- Lab results for Diana Patel (pid=16)
 SET @po_pid = 16;
 SET @po_eid = 0;
 
-INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UNHEX(REPLACE(UUID(), '-', '')), 0, @po_pid, @po_eid, '2026-02-16 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
+INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UUID_TO_BIN(UUID()), 0, @po_pid, @po_eid, '2026-03-12 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
 SET @order_id = LAST_INSERT_ID();
 
 INSERT INTO procedure_order_code (procedure_order_id, procedure_order_seq, procedure_code, procedure_name, procedure_source) VALUES (@order_id, 1, 'TRANSPLANT_PANEL', 'Transplant Evaluation Panel', '1');
 
-INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @order_id, 1, '2026-02-16 08:00:00', '2026-02-16 08:00:00', 'final', 'reviewed');
+INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UUID_TO_BIN(UUID()), @order_id, 1, '2026-03-12 08:00:00', '2026-03-12 08:00:00', 'final', 'reviewed');
 SET @report_id = LAST_INSERT_ID();
 
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1975-2', 'Bilirubin Total', '2026-02-16 08:00:00', 'mg/dL', '4.2', '0.1-1.2', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '6301-6', 'INR', '2026-02-16 08:00:00', '', '1.8', '0.8-1.2', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '2160-0', 'Creatinine', '2026-02-16 08:00:00', 'mg/dL', '1.4', '0.6-1.2', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '2951-2', 'Sodium', '2026-02-16 08:00:00', 'mEq/L', '131', '136-145', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1751-7', 'Albumin', '2026-02-16 08:00:00', 'g/dL', '2.8', '3.4-5.4', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '718-7', 'Hemoglobin', '2026-02-16 08:00:00', 'g/dL', '10.5', '12.0-16.0', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1975-2', 'Bilirubin Total', '2026-03-12 08:00:00', 'mg/dL', '4.2', '0.1-1.2', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '6301-6', 'INR', '2026-03-12 08:00:00', '', '1.8', '0.8-1.2', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '2160-0', 'Creatinine', '2026-03-12 08:00:00', 'mg/dL', '1.4', '0.6-1.2', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '2951-2', 'Sodium', '2026-03-12 08:00:00', 'mEq/L', '131', '136-145', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1751-7', 'Albumin', '2026-03-12 08:00:00', 'g/dL', '2.8', '3.4-5.4', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '718-7', 'Hemoglobin', '2026-03-12 08:00:00', 'g/dL', '10.5', '12.0-16.0', 'low', 'final');
 
 
 -- Lab results for Robert Chen-Ramirez (pid=17)
 SET @po_pid = 17;
 SET @po_eid = 0;
 
-INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UNHEX(REPLACE(UUID(), '-', '')), 0, @po_pid, @po_eid, '2026-02-16 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
+INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UUID_TO_BIN(UUID()), 0, @po_pid, @po_eid, '2026-03-12 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
 SET @order_id = LAST_INSERT_ID();
 
 INSERT INTO procedure_order_code (procedure_order_id, procedure_order_seq, procedure_code, procedure_name, procedure_source) VALUES (@order_id, 1, 'TRANSPLANT_PANEL', 'Transplant Evaluation Panel', '1');
 
-INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @order_id, 1, '2026-02-16 08:00:00', '2026-02-16 08:00:00', 'final', 'reviewed');
+INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UUID_TO_BIN(UUID()), @order_id, 1, '2026-03-12 08:00:00', '2026-03-12 08:00:00', 'final', 'reviewed');
 SET @report_id = LAST_INSERT_ID();
 
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '33914-3', 'eGFR', '2026-02-16 08:00:00', 'mL/min', '18', '>60', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '2160-0', 'Creatinine', '2026-02-16 08:00:00', 'mg/dL', '4.9', '0.6-1.2', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '10230-1', 'Ejection Fraction', '2026-02-16 08:00:00', '%', '32', '55-70', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '30934-4', 'BNP', '2026-02-16 08:00:00', 'pg/mL', '620', '<100', 'high', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '718-7', 'Hemoglobin', '2026-02-16 08:00:00', 'g/dL', '10.8', '13.5-17.5', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1751-7', 'Albumin', '2026-02-16 08:00:00', 'g/dL', '3.2', '3.4-5.4', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '33914-3', 'eGFR', '2026-03-12 08:00:00', 'mL/min', '18', '>60', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '2160-0', 'Creatinine', '2026-03-12 08:00:00', 'mg/dL', '4.9', '0.6-1.2', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '10230-1', 'Ejection Fraction', '2026-03-12 08:00:00', '%', '32', '55-70', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '30934-4', 'BNP', '2026-03-12 08:00:00', 'pg/mL', '620', '<100', 'high', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '718-7', 'Hemoglobin', '2026-03-12 08:00:00', 'g/dL', '10.8', '13.5-17.5', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1751-7', 'Albumin', '2026-03-12 08:00:00', 'g/dL', '3.2', '3.4-5.4', 'low', 'final');
 
 
 -- Lab results for Angela Torres (pid=18)
 SET @po_pid = 18;
 SET @po_eid = 0;
 
-INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UNHEX(REPLACE(UUID(), '-', '')), 0, @po_pid, @po_eid, '2026-02-16 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
+INSERT INTO procedure_order (uuid, provider_id, patient_id, encounter_id, date_ordered, order_priority, order_status, procedure_order_type, activity) VALUES (UUID_TO_BIN(UUID()), 0, @po_pid, @po_eid, '2026-03-12 08:00:00', 'normal', 'complete', 'laboratory_test', 1);
 SET @order_id = LAST_INSERT_ID();
 
 INSERT INTO procedure_order_code (procedure_order_id, procedure_order_seq, procedure_code, procedure_name, procedure_source) VALUES (@order_id, 1, 'TRANSPLANT_PANEL', 'Transplant Evaluation Panel', '1');
 
-INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @order_id, 1, '2026-02-16 08:00:00', '2026-02-16 08:00:00', 'final', 'reviewed');
+INSERT INTO procedure_report (uuid, procedure_order_id, procedure_order_seq, date_collected, date_report, report_status, review_status) VALUES (UUID_TO_BIN(UUID()), @order_id, 1, '2026-03-12 08:00:00', '2026-03-12 08:00:00', 'final', 'reviewed');
 SET @report_id = LAST_INSERT_ID();
 
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '19926-5', 'FEV1 % Predicted', '2026-02-16 08:00:00', '%', '22', '>80', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '20150-9', 'FEV1', '2026-02-16 08:00:00', 'L', '0.68', '>2.0', 'low', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '718-7', 'Hemoglobin', '2026-02-16 08:00:00', 'g/dL', '14.1', '12.0-16.0', '', 'final');
-INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UNHEX(REPLACE(UUID(), '-', '')), @report_id, 'N', '1751-7', 'Albumin', '2026-02-16 08:00:00', 'g/dL', '3.9', '3.4-5.4', '', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '19926-5', 'FEV1 % Predicted', '2026-03-12 08:00:00', '%', '22', '>80', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '20150-9', 'FEV1', '2026-03-12 08:00:00', 'L', '0.68', '>2.0', 'low', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '718-7', 'Hemoglobin', '2026-03-12 08:00:00', 'g/dL', '14.1', '12.0-16.0', '', 'final');
+INSERT INTO procedure_result (uuid, procedure_report_id, result_data_type, result_code, result_text, date, units, result, `range`, abnormal, result_status) VALUES (UUID_TO_BIN(UUID()), @report_id, 'N', '1751-7', 'Albumin', '2026-03-12 08:00:00', 'g/dL', '3.9', '3.4-5.4', '', 'final');
 
