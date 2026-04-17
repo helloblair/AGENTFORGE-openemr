@@ -41,16 +41,74 @@ function ToolPill({ name }: { name: string }) {
 }
 
 // ── Disclaimer / body splitter ───────────────────────────────────────────────
-// Backend appends disclaimers after "---" separators. Split them out so we can
-// render the main content in a card and disclaimers as small muted text below.
+// Backend appends disclaimers after "---" separators. We split them into:
+// - inline: tool-specific disclaimers (screening, donor) → rendered inside card
+// - general: clinical data / support disclaimers → rendered as muted text below
 
 const DISCLAIMER_SEPARATOR = /\n{2,}---\n/;
 
-function splitDisclaimers(content: string): { body: string; disclaimers: string[] } {
+const INLINE_DISCLAIMER_PATTERNS = [
+  /SCREENING TOOL DISCLAIMER/i,
+  /DONOR SCREENING DISCLAIMER/i,
+  /ALLERGY-MEDICATION CONFLICT/i,
+  /claims.*could not be verified/i,
+];
+
+function isInlineDisclaimer(text: string): boolean {
+  return INLINE_DISCLAIMER_PATTERNS.some((p) => p.test(text));
+}
+
+function splitDisclaimers(content: string): {
+  body: string;
+  inlineDisclaimers: string[];
+  generalDisclaimers: string[];
+} {
   const parts = content.split(DISCLAIMER_SEPARATOR);
   const body = parts[0];
-  const disclaimers = parts.slice(1).map((d) => d.replace(/^---$/, "").trim()).filter(Boolean);
-  return { body, disclaimers };
+  const all = parts.slice(1).map((d) => d.replace(/^---$/, "").trim()).filter(Boolean);
+  const inlineDisclaimers: string[] = [];
+  const generalDisclaimers: string[] = [];
+  for (const d of all) {
+    if (isInlineDisclaimer(d)) {
+      inlineDisclaimers.push(d);
+    } else {
+      generalDisclaimers.push(d);
+    }
+  }
+  return { body, inlineDisclaimers, generalDisclaimers };
+}
+
+// ── Critical text detection ──────────────────────────────────────────────────
+// Matches bold text from the backend that signals warnings, conflicts, or
+// negative clinical findings. These render red + underlined for emphasis.
+
+const CRITICAL_PATTERNS = [
+  /WARNING/i,
+  /CONFLICT/i,
+  /INTERACTION/i,
+  /NOT VIABLE/i,
+  /NOT ELIGIBLE/i,
+  /INELIGIBLE/i,
+  /DOES NOT MEET/i,
+  /ABSOLUTE CONTRAINDICATION/i,
+  /MISSING DATA/i,
+  /INCOMPLETE/i,
+  /UNDETERMINED/i,
+  /RISK FACTOR/i,
+  /NO\b.*\bMEET/i,
+];
+
+function isCriticalText(text: string): boolean {
+  return CRITICAL_PATTERNS.some((p) => p.test(text));
+}
+
+function extractText(children: React.ReactNode): string {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) return children.map(extractText).join("");
+  if (children && typeof children === "object" && "props" in children) {
+    return extractText((children as React.ReactElement<{ children?: React.ReactNode }>).props.children);
+  }
+  return String(children ?? "");
 }
 
 // ── Markdown component overrides ─────────────────────────────────────────────
@@ -97,6 +155,14 @@ const markdownComponents: Components = {
     return <li className="mb-0.5">{children}</li>;
   },
   strong({ children }) {
+    const text = extractText(children);
+    if (isCriticalText(text)) {
+      return (
+        <strong className="font-semibold text-error underline decoration-error/50 underline-offset-2">
+          {children}
+        </strong>
+      );
+    }
     return <strong className="font-semibold">{children}</strong>;
   },
   table({ children }) {
@@ -133,6 +199,30 @@ function ToolsCalledRow({ tools }: { tools: string[] }) {
   );
 }
 
+// ── Inline disclaimer banner (inside the card) ──────────────────────────────
+
+function InlineDisclaimerBanner({ text }: { text: string }) {
+  // Strip markdown bold markers for clean display
+  const clean = text.replace(/\*\*/g, "");
+  // Extract the title (first line) and body (rest)
+  const lines = clean.split("\n").filter(Boolean);
+  const title = lines[0] ?? "";
+  const body = lines.slice(1).join(" ").trim();
+
+  return (
+    <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-warning">
+        {title}
+      </p>
+      {body && (
+        <p className="mt-1 text-[11px] leading-snug text-text-secondary">
+          {body}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── MessageBubble ────────────────────────────────────────────────────────────
 
 interface MessageBubbleProps {
@@ -145,20 +235,22 @@ export default function MessageBubble({
   onFeedback,
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const { body, disclaimers: rawDisclaimers } = isUser
-    ? { body: message.content, disclaimers: [] }
+  const { body, inlineDisclaimers, generalDisclaimers: rawGeneral } = isUser
+    ? { body: message.content, inlineDisclaimers: [], generalDisclaimers: [] }
     : splitDisclaimers(message.content);
   // Filter out duplicate confidence lines already rendered by ConfidenceBar
-  const disclaimers = rawDisclaimers.filter((d) => !/^\*{0,2}Confidence[:\s]/i.test(d));
+  const generalDisclaimers = rawGeneral.filter((d) => !/^\*{0,2}Confidence[:\s]/i.test(d));
 
   if (isUser) {
     return (
       <div className="flex justify-end animate-message-in-right">
-        <div className="max-w-[85%] rounded-2xl bg-primary px-4 py-3 text-sm leading-relaxed text-white sm:max-w-[75%] md:max-w-[70%]">
-          <div className="mb-1 text-[10px] font-medium text-white/60 sm:text-[11px]">
+        <div className="max-w-[85%] sm:max-w-[75%] md:max-w-[70%]">
+          <div className="mb-1.5 text-right text-[10px] font-bold uppercase text-text-muted sm:text-[11px]">
             You
           </div>
-          <div className="whitespace-pre-wrap">{message.content}</div>
+          <div className="rounded-2xl bg-primary px-4 py-3 text-sm leading-relaxed text-white">
+            <div className="whitespace-pre-wrap">{message.content}</div>
+          </div>
         </div>
       </div>
     );
@@ -185,6 +277,11 @@ export default function MessageBubble({
             </ReactMarkdown>
           </div>
 
+          {/* Inline disclaimers — tool-specific, inside the card */}
+          {inlineDisclaimers.map((text, i) => (
+            <InlineDisclaimerBanner key={i} text={text} />
+          ))}
+
           {/* Tools called — inline pills */}
           {message.tools_used && message.tools_used.length > 0 && (
             <ToolsCalledRow tools={message.tools_used} />
@@ -203,8 +300,8 @@ export default function MessageBubble({
           </div>
         )}
 
-        {/* Disclaimers — attached to this message */}
-        <ClinicalDisclaimer disclaimers={disclaimers} />
+        {/* General disclaimers — small muted text below card */}
+        <ClinicalDisclaimer disclaimers={generalDisclaimers} />
 
         {/* Feedback — at the very bottom with label */}
         {message.trace_id && (

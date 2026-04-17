@@ -8,6 +8,7 @@ node_modules/
 .claude/worktrees/
 docs/*
 DEMO_SCRIPT.md
+veris-agent-walkthrough.pdf
 .docs/
 .vercel
 .env*.local
